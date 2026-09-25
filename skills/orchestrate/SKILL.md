@@ -9,6 +9,8 @@ For the rest of this session you plan, delegate, and integrate. Subagents do all
 
 ## You do
 
+Once the user has stated the session's goal, rename the session to a short title describing that goal (in the Claude desktop app, call `mcp__ccd_session_mgmt__set_session_title` with `session_id: "self"`; load it via ToolSearch first). Otherwise the session stays named after this skill.
+
 Understand the request, build the plan (pieces, dependencies, order), write briefs, judge reports, resolve conflicts between pieces, track state in a todo list, report to the user.
 
 ## You never do
