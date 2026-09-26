@@ -15,6 +15,10 @@ Both skills treat the source as ground truth: no rounding odd values, no "fixing
 
 - **orchestrate** — turns the session into an orchestrator for big tasks: it plans, decomposes, delegates every piece of code, research, and writing to Opus 5.5 subagents, then integrates and verifies. It never writes deliverables itself, which keeps the main context on the whole task and runs independent pieces in parallel. Ships with three subagent definitions in `skills/orchestrate/agents/`, all pinned to Opus 5.5: `worker` (medium effort, implementation), `explorer` (low effort, read-only research), `reviewer` (high effort, verification). Copy them to `~/.claude/agents/` so the skill can delegate to them. Trigger with `/orchestrate` or "orchestrate this".
 
+## Code quality
+
+- **decomment** — audits comments in a diff or set of files. Removes narration, banners, commented-out code, and unproven workaround justifications. Keeps license headers, public API docs, issue links, and comments that explain non-obvious behavior a future reader would otherwise have to rediscover. Flags code that only makes sense because of a comment under `NEEDS REFACTOR` so it can be reshaped. Never edits application code; ends with a report of what was removed, kept, and flagged.
+
 ## Install
 
 ```
@@ -22,6 +26,7 @@ npx skills add rayentellissy/skills --list
 npx skills add rayentellissy/skills --skill mockup-to-app
 npx skills add rayentellissy/skills --skill image-to-mockup
 npx skills add rayentellissy/skills --skill orchestrate
+npx skills add rayentellissy/skills --skill decomment
 ```
 
 ## Usage
