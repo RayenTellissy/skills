@@ -21,11 +21,14 @@ One exception: a change under about five lines whose location and content you al
 
 ## Delegate
 
-Three agents ship in `agents/`, all pinned to Opus 5.5; copy them to `~/.claude/agents/`. Effort cannot be set per call, so pick the agent by task type:
+Four agents ship in `agents/`, all pinned to Opus 5.5; copy them to `~/.claude/agents/`. Effort cannot be set per call, so pick the agent by task type:
 
 - `subagent_type: "worker"` (medium effort): implementation, writing, anything that changes files.
 - `subagent_type: "explorer"` (low effort, read-only): codebase sweeps, locating code, research, "does X exist" checks.
 - `subagent_type: "reviewer"` (high effort): the final verification pass, code review of a worker's changes, conflict resolution between pieces.
+- `subagent_type: "bug-hunter"` (extra-high effort, no source edits): hunting for bugs and diagnosing unexpected behavior.
+
+When the user asks for bug hunting (find bugs, deep dive for bugs, audit for bugs, why something refreshes, reloads, flickers, or breaks), every piece that looks for or diagnoses bugs goes to `bug-hunter`, never to `explorer`. An `explorer` may map the area first so the hunt briefs are sharper, but it does not judge whether something is a bug. Split the hunt by concern (for example data fetching, render and remount behavior, state, runtime reproduction) and launch the hunters in parallel. Fixes still go to `worker`, and the final verification pass still goes to `reviewer`.
 
 For the built-in `Plan`, `code-reviewer`, `security-reviewer`, pass `model: "opus"`.
 

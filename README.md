@@ -13,7 +13,7 @@ Both skills treat the source as ground truth: no rounding odd values, no "fixing
 
 ## Orchestration
 
-- **orchestrate** — turns the session into an orchestrator for big tasks: it plans, decomposes, delegates every piece of code, research, and writing to Opus 5.5 subagents, then integrates and verifies. It never writes deliverables itself, which keeps the main context on the whole task and runs independent pieces in parallel. Ships with three subagent definitions in `skills/orchestrate/agents/`, all pinned to Opus 5.5: `worker` (medium effort, implementation), `explorer` (low effort, read-only research), `reviewer` (high effort, verification). Copy them to `~/.claude/agents/` so the skill can delegate to them. Trigger with `/orchestrate` or "orchestrate this".
+- **orchestrate** — turns the session into an orchestrator for big tasks: it plans, decomposes, delegates every piece of code, research, and writing to Opus 5.5 subagents, then integrates and verifies. It never writes deliverables itself, which keeps the main context on the whole task and runs independent pieces in parallel. Ships with four subagent definitions in `skills/orchestrate/agents/`, all pinned to Opus 5.5: `worker` (medium effort, implementation), `explorer` (low effort, read-only research), `reviewer` (high effort, verification), `bug-hunter` (extra-high effort, bug hunting that reproduces issues in the running app). Copy them to `~/.claude/agents/` so the skill can delegate to them. Trigger with `/orchestrate` or "orchestrate this".
 
 ## Code quality
 
