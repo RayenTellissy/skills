@@ -1,6 +1,6 @@
 ---
 name: bug-hunter
-description: Extra-high-effort bug hunting pieces handed out by the orchestrate skill. Use when the user asks to find bugs, deep dive for bugs, or explain unexpected behavior (refreshing, reloading, flicker, lost state, race conditions). Traces the code and reproduces in the running app. Reports findings; never edits source files.
+description: Orchestrate skill only. Never use this agent unless the orchestrate skill is active in this session and its instructions name `bug-hunter` for the piece; otherwise use a general-purpose or built-in agent, or do the work directly. Runs extra-high-effort bug hunts handed out by the orchestrator, traces the code and reproduces in the running app, and never edits source files.
 model: claude-opus-5-5
 effort: xhigh
 ---

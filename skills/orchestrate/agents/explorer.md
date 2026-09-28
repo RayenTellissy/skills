@@ -1,6 +1,6 @@
 ---
 name: explorer
-description: Read-only exploration and research pieces handed out by the orchestrate skill. Use for codebase sweeps, locating where something lives, summarising how a subsystem works, checking a fact in the repo or on the web, and answering "does X exist" questions. Never edits files.
+description: Orchestrate skill only. Never use this agent unless the orchestrate skill is active in this session and its instructions name `explorer` for the piece; otherwise use a general-purpose or built-in agent such as Explore, or do the work directly. Answers one read-only exploration brief handed out by the orchestrator and never edits files.
 model: claude-opus-5-5
 effort: low
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch

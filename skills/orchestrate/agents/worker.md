@@ -1,6 +1,6 @@
 ---
 name: worker
-description: Opus 5.5 worker at medium effort. Use for delegated implementation, research, writing, and verification pieces handed out by the orchestrate skill. Runs one self-contained brief end to end and reports what was done, how it was verified, and what is unresolved.
+description: Orchestrate skill only. Never use this agent unless the orchestrate skill is active in this session and its instructions name `worker` for the piece; otherwise use a general-purpose or built-in agent, or do the work directly. Runs one self-contained medium-effort brief handed out by the orchestrator end to end.
 model: claude-opus-5-5
 effort: medium
 ---
