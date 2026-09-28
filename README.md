@@ -18,6 +18,7 @@ Both skills treat the source as ground truth: no rounding odd values, no "fixing
 ## Code quality
 
 - **decomment** — audits comments in a diff or set of files. Removes narration, banners, commented-out code, and unproven workaround justifications. Keeps license headers, public API docs, issue links, and comments that explain non-obvious behavior a future reader would otherwise have to rediscover. Flags code that only makes sense because of a comment under `NEEDS REFACTOR` so it can be reshaped. Never edits application code; ends with a report of what was removed, kept, and flagged.
+- **test-audit** — decides whether a test should exist. Gates every new or changed test on four questions (what contract it protects, what regression fails it, why existing coverage misses it, whether it needs a test-only seam) plus a checklist of junk patterns such as assertions that can never fail, duplicated coverage, and source greps. In audit mode it sweeps existing tests, records evidence for each candidate before deleting anything, and removes the test-only exports and dead code those tests kept alive.
 
 ## Install
 
@@ -27,6 +28,7 @@ npx skills add rayentellissy/skills --skill mockup-to-app
 npx skills add rayentellissy/skills --skill image-to-mockup
 npx skills add rayentellissy/skills --skill orchestrate
 npx skills add rayentellissy/skills --skill decomment
+npx skills add rayentellissy/skills --skill test-audit
 ```
 
 ## Usage
