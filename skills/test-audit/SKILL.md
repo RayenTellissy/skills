@@ -43,6 +43,7 @@ Both modes use this list: a new test that matches a pattern fails the authoring 
 - expected values produced by the helper or renderer under test;
 - mocks that implement the asserted behavior;
 - assertions that can run zero times, such as an un-awaited `.resolves` or `.rejects`, or an `expect` inside a loop, branch, or callback the input never reaches;
+- assertions too weak to fail, such as `toBeDefined`, `toBeTruthy`, `not.toThrow`, or a length or type check, when the contract names an exact value;
 - negative controls that pass for an unrelated reason, such as a denial from a different guard or a rejection the production path never reaches;
 - tests that never run: skipped or todo tests, environment gates no CI job satisfies, or files no test config includes. Route them if the contract matters.
 
@@ -65,6 +66,13 @@ Both modes use this list: a new test that matches a pattern fails the authoring 
 - fixtures that hand the test the result, acknowledgement, or callback ordering the owner should produce, or persistence asserted against a store the path never writes;
 - names or fixtures that promise more than the input exercises, such as an "expires stale sessions" test whose fixture has no stale session.
 
+**Flaky**: passes or fails for reasons outside the code under test.
+
+- dependence on real time, timers, randomness, locale, or time zone without a fixed clock, seed, or setting;
+- real network or third-party calls outside a test meant to cover that integration;
+- shared mutable state, such as globals, database rows, or files that other tests also touch, or reliance on test run order;
+- sleeps or fixed timeouts instead of waiting on the observable condition.
+
 **Keeps test-only code alive**:
 
 - tests whose only purpose is preserving test-only exports, globals, or wrappers;
@@ -82,6 +90,32 @@ Before adding or changing a test, answer four questions. A missing answer means 
 Then check the test against every [junk pattern](#junk-patterns). When reviewing someone else's diff, report each failed question or matched pattern as a finding.
 
 State each new test's contract and regression in your summary or PR body, so reviewers can see the gate was applied.
+
+### Finding what to test
+
+When a change adds or alters behavior, list each observable behavior it introduces and name the test that covers it. A behavior with no covering test is a gap to fill or to report, not something to skip silently.
+
+For each behavior, check the edges that apply: empty, missing, or null input; boundaries and off-by-one values; invalid or malformed input; the error and rejection paths; unauthorized or unauthenticated callers; duplicates and repeated calls; concurrent calls; large inputs; and non-ASCII text. Cover an edge only when it has a credible regression; otherwise say why it does not apply.
+
+### Choosing the test
+
+Pick the kind of test from the behavior, then write it at the owner boundary:
+
+| Behavior | Test | Notes |
+| --- | --- | --- |
+| Logic with a rule that holds for every input, such as parsing, encoding, pricing, dates, sorting | Property-based, plus a few worked examples | Assert invariants like round-trips, ordering, and bounds, not recomputed outputs |
+| A module or service reached through its exported API, route, or handler | Integration at the owner boundary | Real internal collaborators and a real or in-memory store; mock only external systems |
+| Pure computation with a few distinct cases | Table-driven unit test | Expected values come from the spec or worked examples |
+| A payload shape agreed between services, packages, or a client and server | Contract test | Assert the fields and types callers rely on, not the whole object |
+| A critical user flow such as sign-up, login, checkout, or the core feature | End-to-end | Keep these few; every other case belongs lower down |
+| A fixed bug | Regression test | See [Regression tests](#regression-tests) |
+| Rendered UI whose exact output is the contract | Snapshot or visual diff | Only when a reviewer will actually read the diff |
+
+Mock only at system boundaries: third-party APIs, email, payments, the clock, and randomness. Never mock the owner's own modules; a mocked internal collaborator is a test-only seam.
+
+### Proving a new test
+
+A test that has never failed has not proved anything. Before keeping a new test, watch it fail on its intended assertion: write it before the behavior exists, or temporarily break the owner, such as by inverting a condition or returning a wrong value, run it, then restore the owner. A test that still passes against the broken owner fails the gate.
 
 ### Regression tests
 
