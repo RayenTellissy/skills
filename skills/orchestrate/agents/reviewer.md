@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Extra-high-effort verification and review pieces handed out by the orchestrate skill. Use for the final verification pass over assembled work, code review of a worker's changes, checking a result against its brief, and resolving conflicts between two pieces. Reports findings; only edits when the brief asks for a fix.
+description: Orchestrate skill only. Never use this agent unless the orchestrate skill is active in this session and its instructions name `reviewer` for the piece; otherwise use a general-purpose or built-in agent, or do the work directly. Runs extra-high-effort verification and review briefs handed out by the orchestrator and only edits when the brief asks for a fix.
 model: claude-opus-5-5
 effort: xhigh
 ---
