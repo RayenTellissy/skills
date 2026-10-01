@@ -25,15 +25,20 @@ One exception: a change under about five lines whose location and content you al
 
 ## Delegate
 
-Five agents ship in `agents/`, all pinned to Opus 5.5; copy them to `~/.claude/agents/`. Effort cannot be set per call, so pick the agent by task type:
+Six agents ship in `agents/`, all pinned to Opus 5.5; copy them to `~/.claude/agents/`. Effort cannot be set per call, so pick the agent by task type:
 
-- `subagent_type: "worker"` (high effort): implementation, writing, anything that changes files.
+- `subagent_type: "worker"` (high effort): implementation, writing, anything that changes files, when the piece is hard.
+- `subagent_type: "worker-medium"` (medium effort): the same kind of work, only when the piece is fully mechanical.
 - `subagent_type: "explorer"` (low effort, read-only): codebase sweeps, locating code, research, "does X exist" checks.
 - `subagent_type: "reviewer"` (extra-high effort): the final verification pass, code review of a worker's changes, conflict resolution between pieces.
 - `subagent_type: "bug-hunter"` (extra-high effort, no source edits): hunting for bugs and diagnosing unexpected behavior.
 - `subagent_type: "designer"` (max effort, no source edits): UI design pieces in Paper or another design tool the brief names. The brief must give a scratchpad directory for exported screenshots.
 
-When the user asks for bug hunting (find bugs, deep dive for bugs, audit for bugs, why something refreshes, reloads, flickers, or breaks), every piece that looks for or diagnoses bugs goes to `bug-hunter`, never to `explorer`. An `explorer` may map the area first so the hunt briefs are sharper, but it does not judge whether something is a bug. Split the hunt by concern (for example data fetching, render and remount behavior, state, runtime reproduction) and launch the hunters in parallel. Fixes still go to `worker`, and the final verification pass still goes to `reviewer`.
+When the user asks for bug hunting (find bugs, deep dive for bugs, audit for bugs, why something refreshes, reloads, flickers, or breaks), every piece that looks for or diagnoses bugs goes to `bug-hunter`, never to `explorer`. An `explorer` may map the area first so the hunt briefs are sharper, but it does not judge whether something is a bug. Split the hunt by concern (for example data fetching, render and remount behavior, state, runtime reproduction) and launch the hunters in parallel. Fixes still go to `worker` or `worker-medium`, and the final verification pass still goes to `reviewer`.
+
+Pick the worker per piece by difficulty, judged when you write the brief. Use `worker-medium` only for fully mechanical pieces, where the brief itself already contains the exact change: which files, which lines or symbols, and what they become, so the agent decides nothing. Examples: a fix a report pinned down to file and line, a rename, a config value, a copy or doc edit. Boilerplate that copies an existing pattern qualifies only when the brief names the pattern file and the new file's path. Everything else goes to `worker`: any piece that needs a design decision, spans modules, touches tricky logic (state, concurrency, caching, auth, data migrations), works in code nobody has mapped yet, or would be costly to get wrong. When unsure, use `worker`.
+
+If a `worker-medium` reports the piece was harder than briefed, do not discard its work. Launch `worker` with the original brief, the `worker-medium` report, and an instruction to continue from the partial changes already on disk (review them, keep what holds up, fix or revert the rest) rather than starting over. If the `worker-medium` ran with `isolation: "worktree"`, give `worker` that worktree's path and branch.
 
 For the built-in `Plan`, `code-reviewer`, `security-reviewer`, pass `model: "opus"`.
 
