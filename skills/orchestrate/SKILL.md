@@ -31,7 +31,7 @@ Five agents ship in `agents/`, all pinned to Opus 5.5; copy them to `~/.claude/a
 - `subagent_type: "explorer"` (low effort, read-only): codebase sweeps, locating code, research, "does X exist" checks.
 - `subagent_type: "reviewer"` (extra-high effort): the final verification pass, code review of a worker's changes, conflict resolution between pieces.
 - `subagent_type: "bug-hunter"` (extra-high effort, no source edits): hunting for bugs and diagnosing unexpected behavior.
-- `subagent_type: "designer"` (extra-high effort, no source edits): UI design pieces in Paper or another design tool the brief names. The brief must give a scratchpad directory for exported screenshots.
+- `subagent_type: "designer"` (max effort, no source edits): UI design pieces in Paper or another design tool the brief names. The brief must give a scratchpad directory for exported screenshots.
 
 When the user asks for bug hunting (find bugs, deep dive for bugs, audit for bugs, why something refreshes, reloads, flickers, or breaks), every piece that looks for or diagnoses bugs goes to `bug-hunter`, never to `explorer`. An `explorer` may map the area first so the hunt briefs are sharper, but it does not judge whether something is a bug. Split the hunt by concern (for example data fetching, render and remount behavior, state, runtime reproduction) and launch the hunters in parallel. Fixes still go to `worker`, and the final verification pass still goes to `reviewer`.
 
