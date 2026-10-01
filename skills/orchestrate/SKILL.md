@@ -46,6 +46,16 @@ Launch independent pieces in one message, backgrounded. Size each piece so one r
 
 Parallel workers share one checkout and can overwrite each other's edits. Before launching pieces together, check that no two will change the same files. If they overlap, or you cannot tell, either run them one after another or launch each with `isolation: "worktree"`, tell each to commit its work in its worktree, and once both report, hand the branches to one agent to merge. Worktrees need a git repository; outside one, run overlapping pieces in sequence.
 
+## End-to-end tests
+
+Use [e2e](https://github.com/tester-army/e2e) for end-to-end work when the project already has an `e2e.config.ts` (or `e2e.config.mts`), or when the user asks for end-to-end tests. Do not add it to a project on your own: its agent steps call a model on the user's account. Agents learn it from the `e2e` skill (`npx skills add tester-army/e2e`) or from `npx e2e guide <topic>`, which prints the same text, so name the topic in each brief: `setup`, `writing-tests`, `explore`, `mcp`, `bug-bash`, or `debugging`.
+
+- Setup is one `worker` piece: `npx e2e init`, a config whose target starts the app, and one passing test. Agents never sign in to a model provider or handle API keys. If no model credentials are configured, ask the user to export the provider's key or run `npx e2e login <provider>` themselves.
+- A worker that changes a user-facing flow adds or updates `tests/<feature>.e2e.ts` and verifies with `npx e2e run <file>`.
+- Bug hunts give each `bug-hunter` one charter. Hunters reproduce with `npx e2e explore "<charter>"` or by driving the live app through the `e2e` MCP server, and prove each confirmed bug with a repro test, at a path the brief names under `tests/bugbash/`, that fails for the reason reported. Before launching hunters in parallel, a `worker` prepares the bash as topic `bug-bash` describes: the app running once for every hunter, one seeded account per charter, and a bug-bash config. Every explore run spends model calls, so keep the number of charters proportional to the ask.
+- The final `reviewer` pass runs `npx e2e run` over the tests that cover the change. Exit code 1 is a test failure; 2 to 4 are config, credential, or infrastructure errors, which go back to setup, not to a fix worker.
+- Agents never run `npx e2e feedback`, which sends a report to the e2e team, unless the user asks.
+
 ## Integrate
 
 Judge reports against the plan, not the agent's claim. Missing verification goes back to the agent. Conflicts between pieces go to one agent with both sides and a decision. Before reporting done, delegate a verification pass over the assembled result to `reviewer` and wait for it. Report only what was verified, in your own words, briefly: delegated, back, next, blocked.
