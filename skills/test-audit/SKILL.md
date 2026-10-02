@@ -128,7 +128,7 @@ Name each test after the behavior and condition it checks, so a failure reads as
 
 ### Proving a new test
 
-A test that has never failed has not proved anything. Before keeping each new test, watch it fail on its intended assertion: write it before the behavior exists, or temporarily break the one behavior the test names and run it. To prove a rounding test, change the rounding; to prove an expiry test, drop the expiry check. Making the whole function return a wrong value fails every test at once and proves none of them in particular. Then restore the owner and confirm with `git status` and `git diff` that only your intended changes remain, with no stray backups or scratch files. A test that still passes against the broken owner fails the gate; often its input never exercises the behavior, such as a rounding test whose amounts divide evenly.
+A test that has never failed has not proved anything. Before keeping each new test, watch it fail on its intended assertion: write it before the behavior exists, or temporarily break the one behavior the test names and run it. A failure from a missing export, file, or symbol is not that assertion failing; when the behavior's entry point does not exist yet, report the test as unproven and prove it once the entry point lands. To prove a rounding test, change the rounding; to prove an expiry test, drop the expiry check. Making the whole function return a wrong value fails every test at once and proves none of them in particular. Then restore the owner and confirm with `git status` and `git diff` that only your intended changes remain, with no stray backups or scratch files. A test that still passes against the broken owner fails the gate; often its input never exercises the behavior, such as a rounding test whose amounts divide evenly.
 
 ### Regression tests
 
@@ -137,6 +137,8 @@ A regression test that never demonstrably failed proves the mock, not the fix. F
 1. With no test run active, revert only the production fix, for example `git stash push -- <fix paths>`.
 2. Run the test and confirm it fails on the intended assertion, not an import, setup, or timeout error.
 3. Restore the fix and confirm the test passes.
+
+When the fix does not exist yet, because you write the test first or someone else will write the fix, the unfixed code is the broken owner: run the test, confirm it fails on the intended assertion, and hand it off. Whoever lands the fix confirms it passes.
 
 Do not replay the same scenario at every layer the bug crosses.
 
@@ -152,7 +154,7 @@ Never make a failing test pass by weakening its assertion, loosening a matcher, 
 
 ## Running tests
 
-Never edit source or tests while a test run is in progress in the same checkout; a run that sees half-applied edits proves nothing. Iterate on the smallest set of owner and sibling tests with the project's own test command, as documented in its instruction files or package scripts. Before handing off, run the checks the repository requires for the changed paths.
+Never edit source or tests while a test run is in progress in the same checkout; a run that sees half-applied edits proves nothing. When someone else is editing the same checkout, such as another agent working in parallel, write and prove tests in a separate git worktree instead: a temporary break you make to prove a test would land in their runs, and their half-applied edits in yours. Iterate on the smallest set of owner and sibling tests with the project's own test command, as documented in its instruction files or package scripts. Before handing off, run the checks the repository requires for the changed paths.
 
 ## Report
 
