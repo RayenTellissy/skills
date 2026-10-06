@@ -98,3 +98,58 @@ Work through a diff in this order, so the production side gets the same scrutiny
 When a change adds or alters behavior, list each observable behavior it introduces and name the test that covers it, or fill the gap.
 
 For each behavior, check the edges that apply: empty, missing, or null input; boundaries and off-by-one values; invalid or malformed input; the error and rejection paths; unauthorized or unauthenticated callers; duplicates and repeated calls; concurrent calls; large inputs; and non-ASCII text. Cover an edge only when it has a credible regression.
+
+### Choosing the test
+
+Pick the kind of test from the behavior, then write it at the owner boundary with the project's existing framework, file layout, naming, and helpers:
+
+| Behavior | Test | Notes |
+| --- | --- | --- |
+| Logic with a rule that holds for every input, such as parsing, encoding, pricing, dates, sorting | Property-based, plus a few worked examples | Assert invariants like round-trips, ordering, and bounds, not recomputed outputs |
+| A module or service reached through its exported API, route, or handler | Integration at the owner boundary | Real internal collaborators and a real or in-memory store; mock only external systems |
+| Pure computation with a few distinct cases | Table-driven unit test | Expected values come from the spec or worked examples |
+| A payload shape agreed between services, packages, or a client and server | Contract test | Assert the fields and types callers rely on, not the whole object |
+| UI component behavior | Component test driven by user events | Query by role or visible text and assert what the user sees, not internal state or hook calls |
+| A critical user flow such as sign-up, login, checkout, or the core feature | End-to-end | Keep these few; every other case belongs lower down |
+| A fixed bug | Regression test | See [Regression tests](#regression-tests) |
+| Rendered UI whose exact output is the contract | Snapshot or visual diff | Only when a reviewer will actually read the diff |
+
+Mock only at system boundaries: third-party APIs, email, payments, the clock, and randomness. Never mock the owner's own modules; a mocked internal collaborator is a test-only seam. A test of a default that reads the clock or randomness still controls it, for example by mocking `Date.now` or seeding the generator. Do not add a test dependency, such as a property-testing library, without asking; the fallback is a plain loop over a small range of inputs that asserts the same invariant, plus worked examples at the boundaries.
+
+Name each test after the behavior and condition it checks, so a failure reads as a broken contract.
+
+### Proving a new test
+
+A test that has never failed has not proved anything. Before keeping each new test, watch it fail on its intended assertion: write it before the behavior exists, or temporarily break the one behavior the test names and run it. A failure from a missing export, file, or symbol is not that assertion failing; when the behavior's entry point does not exist yet, report the test as unproven and prove it once the entry point lands. To prove a rounding test, change the rounding; to prove an expiry test, drop the expiry check. Making the whole function return a wrong value fails every test at once and proves none of them in particular. Then restore the owner and confirm with `git status` and `git diff` that only your intended changes remain, with no stray backups or scratch files. A test that still passes against the broken owner fails the gate; often its input never exercises the behavior, such as a rounding test whose amounts divide evenly.
+
+### Regression tests
+
+A regression test that never demonstrably failed proves the mock, not the fix. Fix the bug at its owner boundary and put one regression test there. Give it inputs that also fail the plausible wrong fixes, not only the reported case: for an off-by-one or rounding bug, include the values just past the boundary, where a near-miss fix still breaks. Then prove it:
+
+1. With no test run active, revert only the production fix, for example `git stash push -- <fix paths>`.
+2. Run the test and confirm it fails on the intended assertion, not an import, setup, or timeout error.
+3. Restore the fix and confirm the test passes.
+
+When the fix does not exist yet, because you write the test first or someone else will write the fix, the unfixed code is the broken owner: run the test, confirm it fails on the intended assertion, and hand it off. Whoever lands the fix confirms it passes.
+
+### When an existing test fails
+
+A failing test is evidence, not an obstacle. Before touching it, decide which side is wrong, and name that case for each failing test in your summary:
+
+- The behavior regressed: fix the owner and leave the test alone.
+- The contract changed on purpose: assert the new contract's exact value. When `save()` starts returning the stored record instead of `true`, assert the record's fields, not `ok(result)` or `notEqual(result, null)`.
+- The test asserts implementation, so it broke under a behavior-preserving change: rewrite it at the owner boundary instead of patching it to match the new internals, then remove or flag the internals it reached into if nothing else uses them.
+
+Never make a failing test pass by weakening its assertion, loosening a matcher, skipping it, or deleting it without an audit ledger entry.
+
+## Running tests
+
+Never edit source or tests while a test run is in progress in the same checkout; a run that sees half-applied edits proves nothing. When someone else is editing the same checkout, such as another agent working in parallel, write and prove tests in a separate git worktree instead: a temporary break you make to prove a test would land in their runs, and their half-applied edits in yours. Iterate on the smallest set of owner and sibling tests with the project's own test command, as documented in its instruction files or package scripts. Before handing off, run the checks the repository requires for the changed paths.
+
+## Report
+
+Audits hand off as described in AUDIT.md. For authoring and review, keep it proportionate; one line per test is usually enough.
+
+- For each new or changed test: the contract, the regression it catches, and how you saw it fail.
+- For a review: each finding as `path:line`, the failed question or junk pattern, and the fix; then the behaviors the diff adds that no test covers.
+- Behaviors or edges left untested, and why.
