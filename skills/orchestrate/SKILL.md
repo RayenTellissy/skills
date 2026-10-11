@@ -87,7 +87,7 @@ Judge reports against the plan, not the agent's claim. A report without the exac
 
 ## Verify
 
-Once no other agent is running, delegate the final verification pass to `reviewer` and wait for it. Give it: the user's request verbatim, the plan with each piece's acceptance criteria, the session's base commit and the files that were already dirty, the tests each tester added and whether each was proven, every edit you made yourself, every check the reports claim passed (to rerun), and for each bug fix the hunter's reproduction. Leave out the agents' claims that their work is correct.
+Once no other agent is running, delegate the final verification pass to `reviewer` and wait for it. Give it: the user's request verbatim, the plan with each piece's acceptance criteria, the session's base commit and the files that were already dirty, the tests each tester added and whether each was proven, every edit you made yourself, every check the reports claim passed (to rerun), for each bug fix the hunter's reproduction, and which pieces change what a user sees or clicks, so it walks them in the running app. Leave out the agents' claims that their work is correct.
 
 When the reviewer reports Failed items, send each, with its reproduction, to the agent that built that piece via SendMessage, or to a fresh agent of the same type with the original brief if that agent is gone; a bug a test could have caught gets a tester too. When one claim in a report proves false, have the reviewer recheck every claim in that report. Then continue the same reviewer with SendMessage to recheck those items, review the fix diff, and rerun all its checks. Stop after two fix rounds: whatever still fails goes to the user as failing, with its reproduction.
 
@@ -95,4 +95,4 @@ Any edit after the reviewer's last pass, by you or an agent, reopens this step.
 
 ## Report
 
-Status notes stay brief: delegated, back, next, blocked. The final report says, in your own words: what changed; what was verified, by which check, with what result; what was not verified and why; and anything still failing or suspected. Call the task done only when the reviewer's last pass has no Failed items and nothing changed after it.
+Status notes stay brief: delegated, back, next, blocked. The final report says, in your own words: what changed; what was verified, by which check, with what result; what was not verified and why; anything still failing or suspected; and the reviewer's Needs manual check list, as steps the user can follow on localhost. Call the task done only when the reviewer's last pass has no Failed items and nothing changed after it.

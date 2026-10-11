@@ -95,7 +95,7 @@ Work through a diff in this order, so the production side gets the same scrutiny
 
 ### Finding what to test
 
-When a change adds or alters behavior, list each observable behavior it introduces and name the test that covers it, or fill the gap.
+When a change adds or alters behavior, list each observable behavior it introduces and name the test that covers it, or fill the gap. A visual change whose exact output is not the contract, such as layout, spacing, or styling, gets no test that restates its styles; report it as untested and needing a check in the running app.
 
 For each behavior, check the edges that apply: empty, missing, or null input; boundaries and off-by-one values; invalid or malformed input; the error and rejection paths; unauthorized or unauthenticated callers; duplicates and repeated calls; concurrent calls; large inputs; and non-ASCII text. Cover an edge only when it has a credible regression.
 
