@@ -148,7 +148,7 @@ export const plannedOf = (f: Flow | null, list: AgentRun[]): Planned[] => {
   return f.tasks.map((t, i) => ({ ...t, n: i + 1 })).filter(t => !started.has(norm(t.title)))
 }
 
-// Pieces handed out and not yet accepted. Counted from the runs, not from Agent
+// Pieces handed out and still running. Counted from the runs, not from Agent
 // calls in flight: orchestrate's agents run in the background.
 export const runningOf = (f: Flow, list: AgentRun[]): number => {
   const live = list.filter(a => a.status === 'running' && roleOf(a.type) !== 'other')
@@ -157,14 +157,23 @@ export const runningOf = (f: Flow, list: AgentRun[]): number => {
   return live.filter(a => titles.has(norm(a.description))).length
 }
 
-export const label = (f: Flow, running: number): string => {
+// Planned tasks whose latest run (by title, in launch order) finished well. A
+// task whose latest run is still going or failed, or that never ran, is not done.
+export const doneOf = (f: Flow, list: AgentRun[]): number => {
+  const latest = new Map<string, AgentRun>()
+  for (const a of list) latest.set(norm(a.description), a)
+  const done = f.tasks.filter(t => latest.get(norm(t.title))?.status === 'done').length
+  return f.total ? Math.min(f.total, done) : done
+}
+
+export const label = (f: Flow, running: number, done: number): string => {
   if (f.isFinished) return S.done
   if (f.phase === 'plan') return S.plan
   if (f.phase === 'verify') return S.verify
-  return `${S.tasks} ${f.total ? `${f.done}/${f.total}` : `${running} ${S.busy}`}`
+  return `${S.tasks} ${f.total ? `${done}/${f.total}` : `${running} ${S.busy}`}`
 }
 
-export const ratio = (f: Flow): number => (f.isFinished ? 1 : f.total ? f.done / f.total : 0)
+export const ratio = (f: Flow, done: number): number => (f.isFinished ? 1 : f.total ? done / f.total : 0)
 
 export const totals = (list: AgentRun[], at: number) => {
   const cost = list.reduce((s, a) => s + a.costUsd, 0)
@@ -374,15 +383,15 @@ const BAR_H = 16
 const CRAB_W = 26
 const CELL = 3
 
-export const rowSvg = (f: Flow, running: number, W: number, isWorking: boolean): string => {
+export const rowSvg = (f: Flow, running: number, done: number, W: number, isWorking: boolean): string => {
   // The title takes what it needs, up to 40% of the row; the bar takes the rest.
   const title = fitText(f.title, 13, Math.max(60, W * 0.4))
   const BAR_X = Math.round(16 + textWidth(title, 13) + 12)
   const BAR_W = Math.max(60, W - BAR_X - 46 - CRAB_W)
   const color = f.isFinished ? DONE : ACCENT
   const y0 = (H - BAR_H) / 2
-  const fillW = Math.round(BAR_W * ratio(f))
-  const runW = f.total ? Math.round((BAR_W * Math.min(f.total, f.done + running)) / f.total) : 0
+  const fillW = Math.round(BAR_W * ratio(f, done))
+  const runW = f.total ? Math.round((BAR_W * Math.min(f.total, done + running)) / f.total) : 0
   const dots: string[] = []
 
   // Dithered fill: sparse at the start, dense toward the head.
@@ -394,7 +403,7 @@ export const rowSvg = (f: Flow, running: number, W: number, isWorking: boolean):
       if (noise(c, r) < density) dots.push(`<rect class="t${Math.floor(noise(r, c) * 4)}" x="${c * CELL + 1}" y="${r * CELL + 1}" width="2" height="2"/>`)
     }
   }
-  // Handed to agents, not yet accepted: a faint second layer.
+  // Handed to agents, not yet done: a faint second layer.
   const faint: string[] = []
   for (let c = cols; c < Math.floor(runW / CELL); c++) {
     for (let r = 0; r < rows; r++) {
@@ -408,10 +417,10 @@ export const rowSvg = (f: Flow, running: number, W: number, isWorking: boolean):
     if (x > fillW + 4) ticks.push(`<rect x="${x}" y="${BAR_H / 2 - 4}" width="1.5" height="8" rx="0.75"/>`)
   }
 
-  const text = label(f, running)
+  const text = label(f, running, done)
   const pillW = Math.round(18 + text.length * 6.6)
   const pillX = Math.max(0, Math.min(BAR_W - pillW, fillW - pillW))
-  const percent = `${Math.round(ratio(f) * 100)}%`
+  const percent = `${Math.round(ratio(f, done) * 100)}%`
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 <style>
@@ -441,8 +450,8 @@ ${CRAB_CSS}${crab(W - CRAB_W + 1, 0, 'other', false, isWorking, 0.8)}
 </svg>`
 }
 
-export const barText = (f: Flow, width: number): string => {
-  const filled = Math.round(width * ratio(f))
+export const barText = (f: Flow, done: number, width: number): string => {
+  const filled = Math.round(width * ratio(f, done))
   return '█'.repeat(filled) + '░'.repeat(Math.max(0, width - filled))
 }
 

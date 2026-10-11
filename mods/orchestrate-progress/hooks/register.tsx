@@ -22,6 +22,7 @@ import {
   compactSvg,
   costOf,
   costumeOf,
+  doneOf,
   elapsed,
   fmtCost,
   fmtTime,
@@ -63,17 +64,14 @@ const ORCH_NOTE = `## Progress bar
 The orchestrate-progress mod draws a progress bar above the prompt and an agents panel. Keep it current with \`${TOOL}\`: load it with ToolSearch (\`select:${TOOL}\`), in the same call as the session-title tool. Call it:
 
 - Once the plan is set, before the first launch: \`title\` (the goal in a few words), \`phase: "delegate"\`, and \`tasks\`, one per Agent launch you plan (not explorers or the final reviewer), in launch order, each with the \`agent\` type it goes to and \`after\` listing the task numbers it waits for. Launch each with an Agent \`description\` equal to its task title, so the panel matches runs to tasks.
-- Each time you accept a report: \`done\`, the number of tasks accepted so far.
 - When you re-plan (a piece added, split or dropped): the full \`tasks\` list again.
-- When the reviewer starts: \`phase: "verify"\`.
 - Once, with the final report: \`finished: true\`.
 
-Fields left out keep their value. Each call is cheap and silent: make it in the same message as the launches or status note it goes with, never as a turn of its own. Skip it if ToolSearch does not find the tool.`
+The rest follows the agents on their own: a task counts as done once its latest run finishes without error, and the reviewer's launch moves the bar to Verify. Fields left out keep their value. Each call is cheap and silent: make it in the same message as the launches or status note it goes with, never as a turn of its own. Skip it if ToolSearch does not find the tool.`
 
 type ProgressInput = {
   title?: string
   total?: number
-  done?: number
   phase?: Phase
   finished?: boolean
   tasks?: { title?: string; agent?: string; after?: number[] }[]
@@ -82,7 +80,6 @@ type ProgressInput = {
 const blank = (): Flow => ({
   title: DEFAULT_TITLE,
   total: 0,
-  done: 0,
   phase: 'plan',
   isFinished: false,
   tasks: [],
@@ -110,13 +107,11 @@ const merge = (prev: Flow | null, input: ProgressInput): Flow => {
   const base = isNewFlow(prev, input) || !prev ? blank() : prev
   const tasks = cleanTasks(input.tasks) ?? base.tasks
   const total = Math.max(0, Math.round(input.total ?? (input.tasks ? tasks.length : base.total)))
-  const done = Math.min(total || Infinity, Math.max(0, Math.round(input.done ?? base.done)))
   const phase = input.phase && PHASES.includes(input.phase) ? input.phase : base.phase
   return {
     ...base,
     title: input.title?.trim() || base.title,
     total,
-    done,
     phase,
     isFinished: input.finished === true,
     tasks,
@@ -151,14 +146,13 @@ export const register: Register = on => {
       name: 'progress',
       description:
         'Report /orchestrate progress to the progress bar above the prompt and the agents panel. ' +
-        'Call it once the plan is set (title, tasks, phase "delegate"), each time a report is accepted (done), ' +
-        'on re-plans (tasks), when the reviewer starts (phase "verify"), and once at the end with finished: true. Fields left out keep their previous value.',
+        'Call it once the plan is set (title, tasks, phase "delegate"), on re-plans (tasks), and once at the end with finished: true. ' +
+        'Done tasks and the verify phase follow the agents on their own: a task is done once its latest run finishes without error, and a reviewer launch moves the bar to Verify. Fields left out keep their previous value.',
       inputSchema: {
         type: 'object',
         properties: {
           title: { type: 'string', description: 'Short name of the overall goal, a few words.' },
           total: { type: 'integer', minimum: 0, description: 'Number of planned tasks; defaults to the length of tasks.' },
-          done: { type: 'integer', minimum: 0, description: 'Number of tasks whose reports were accepted.' },
           phase: { type: 'string', enum: [...PHASES] },
           finished: { type: 'boolean', description: 'True once the final report is given.' },
           tasks: {
@@ -217,7 +211,7 @@ export const register: Register = on => {
     const f = await update($, flow, p => merge(p, input))
     if (f && input.tasks?.length) await autoOpen($, f.title)
     const list = await read($, agents)
-    return { result: `ok: ${f ? label(f, runningOf(f, list)) : S.plan}` }
+    return { result: `ok: ${f ? label(f, runningOf(f, list), doneOf(f, list)) : S.plan}` }
   }).catch(() => ({ result: 'ok' }))
 
   // Fails open: a fault here never stops a launch, nor launches twice.
@@ -473,10 +467,11 @@ export const register: Register = on => {
     const { Box, Text, Button } = ui
     const list = await read($, agents)
     const running = runningOf(f, list)
+    const done = doneOf(f, list)
     const crew = list.length + plannedOf(f, list).length
     const isWorking = list.some(a => a.status === 'running')
     const crewButton = <Button key="crew" label={`×${crew}`} plain onPress={() => void togglePane($)} />
-    const percent = `${Math.round(ratio(f) * 100)}%`
+    const percent = `${Math.round(ratio(f, done) * 100)}%`
     const dismiss = <Button key="dismiss" label="✕" plain role="dismiss" onPress={() => update($, flow, () => null)} />
 
     // The terminal's table answers `'Svg' in ui` too, then draws it as an empty box.
@@ -487,7 +482,7 @@ export const register: Register = on => {
       const width = Math.max(180, Math.min(1600, (e.props.bodyColumns || 100) * 8 - 96))
       return (
         <Box flexDirection="row" alignItems="center" gap={1}>
-          <Svg source={rowSvg(f, running, width, isWorking)} alt={`${f.title}: ${label(f, running)}, ${percent}`} width={width} height={H} />
+          <Svg source={rowSvg(f, running, done, width, isWorking)} alt={`${f.title}: ${label(f, running, done)}, ${percent}`} width={width} height={H} />
           {crewButton}
           {dismiss}
         </Box>
@@ -503,8 +498,8 @@ export const register: Register = on => {
           <Text color={f.isFinished ? DONE : ACCENT}>● </Text>
           <Text wrap="truncate-end">{f.title}</Text>
         </Box>
-        <Text color={f.isFinished ? DONE : ACCENT}>{barText(f, width)}</Text>
-        <Text bold>{label(f, running)}</Text>
+        <Text color={f.isFinished ? DONE : ACCENT}>{barText(f, done, width)}</Text>
+        <Text bold>{label(f, running, done)}</Text>
         <Text dimColor>{percent}</Text>
         <Text color={CLAY}>▣</Text>
         {crewButton}

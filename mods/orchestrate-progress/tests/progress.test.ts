@@ -67,8 +67,51 @@ test('/orchestrate gets the progress instructions and raises the band; other ski
   }
 })
 
-test('the reported plan and accepted tasks drive the band', async ($, on) => {
+test('the reported plan drives the band and the panel', async ($, on) => {
   stubEngine(on)
+  const planned = await $.tool.call({
+    tool: TOOL,
+    title: 'Add OAuth login',
+    phase: 'delegate',
+    tasks: [
+      { title: 'Session schema', agent: 'worker' },
+      { title: 'OAuth callback', agent: 'specialist', after: [1] },
+      { title: 'Login tests', agent: 'tester', after: [1] },
+    ],
+  })
+  expect(planned.result).toBe('ok: Tasks 0/3')
+  for (const surface of SURFACES) {
+    const band = await drawn($, BAND, surface)
+    expect(band).toContain('Add OAuth login')
+    expect(band).toContain('Tasks 0/3')
+    expect(band).toContain('0%')
+  }
+
+  // The planned tasks wait in the panel until a run with their title starts.
+  for (const surface of SURFACES) {
+    const pane = await drawn($, PANE, surface)
+    for (const t of ['Session schema', 'OAuth callback', 'Login tests']) expect(pane).toContain(t)
+  }
+
+  expect((await $.tool.call({ tool: TOOL, finished: true })).result).toBe('ok: Done')
+  for (const surface of SURFACES) expect(await drawn($, BAND, surface)).toContain('100%')
+})
+
+test("a planned task is done when its latest run finishes without error", async ($, on) => {
+  stubEngine(on)
+  let n = 0
+  on('agent.spawn', () => ({ model: 'claude-opus-5-5', agentId: `run-${++n}` }))
+  on('turn.complete', (_$, e) => ({ text: e.answer }))
+  const finish = (agentId: string, reason: 'answer' | 'error') =>
+    $.turn.complete({ agentId, reason, answer: '', durationMs: 1000, isAborted: false, turnId: `turn-${agentId}` })
+  const band = async (text: string, percent: string) => {
+    for (const surface of SURFACES) {
+      const drawing = await drawn($, BAND, surface)
+      expect(drawing).toContain(text)
+      expect(drawing).toContain(percent)
+    }
+  }
+
   await $.tool.call({
     tool: TOOL,
     title: 'Add OAuth login',
@@ -79,23 +122,19 @@ test('the reported plan and accepted tasks drive the band', async ($, on) => {
       { title: 'Login tests', agent: 'tester', after: [1] },
     ],
   })
-  expect((await $.tool.call({ tool: TOOL, done: 1 })).result).toBe('ok: Tasks 1/3')
-  for (const surface of SURFACES) {
-    const band = await drawn($, BAND, surface)
-    expect(band).toContain('Add OAuth login')
-    expect(band).toContain('Tasks 1/3')
-    expect(band).toContain('33%')
-  }
+  await $.agent.spawn(spawnInput('worker', 'Session schema', 'Brief.')) // run-1
+  await $.agent.spawn(spawnInput('specialist', 'OAuth callback', 'Brief.')) // run-2
+  await $.agent.spawn(spawnInput('worker', 'Tidy imports', 'Brief.')) // run-3, no task
+  await finish('run-1', 'answer')
+  await finish('run-2', 'error')
+  await finish('run-3', 'answer')
+  await band('Tasks 1/3', '33%')
 
-  // The planned tasks wait in the panel until a run with their title starts.
-  for (const surface of SURFACES) {
-    const pane = await drawn($, PANE, surface)
-    for (const t of ['Session schema', 'OAuth callback', 'Login tests']) expect(pane).toContain(t)
-  }
-
-  expect((await $.tool.call({ tool: TOOL, phase: 'verify', done: 3 })).result).toBe('ok: Verify')
-  expect((await $.tool.call({ tool: TOOL, finished: true })).result).toBe('ok: Done')
-  for (const surface of SURFACES) expect(await drawn($, BAND, surface)).toContain('100%')
+  // A second round of the failed task: running is not done; finished well, it is.
+  await $.agent.spawn(spawnInput('specialist', 'OAuth callback', 'Fix.')) // run-4
+  await band('Tasks 1/3', '33%')
+  await finish('run-4', 'answer')
+  await band('Tasks 2/3', '67%')
 })
 
 test('every agent keeps its prompt and fills the panel', async ($, on) => {
@@ -136,7 +175,7 @@ test("a worker run shows its role, model and the role's default effort before th
 test('a reviewer launch moves the band to Verify', async ($, on) => {
   stubEngine(on)
   on('agent.spawn', (_$, e) => ({ model: 'claude-opus-5-5', agentId: `id-${e.subagentType}` }))
-  await $.tool.call({ tool: TOOL, title: 'Fix login', phase: 'delegate', tasks: [{ title: 'Fix it', agent: 'worker' }], done: 1 })
+  await $.tool.call({ tool: TOOL, title: 'Fix login', phase: 'delegate', tasks: [{ title: 'Fix it', agent: 'worker' }] })
   await $.agent.spawn(spawnInput('reviewer', 'Final review', 'Review.'))
   for (const surface of SURFACES) expect(await drawn($, BAND, surface)).toContain('Verify')
 })
