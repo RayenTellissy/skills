@@ -1,0 +1,11 @@
+{
+  "name": "rayentellissy-skills",
+  "owner": { "name": "RayenTellissy" },
+  "plugins": [
+    {
+      "name": "orchestrate-progress",
+      "source": "./mods/orchestrate-progress",
+      "description": "Progress bar above the prompt and an agents panel for the /orchestrate skill."
+    }
+  ]
+}

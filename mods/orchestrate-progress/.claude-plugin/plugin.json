@@ -1,0 +1,9 @@
+{
+  "name": "orchestrate-progress",
+  "version": "0.1.0",
+  "description": "Progress bar above the prompt for /orchestrate, plus an agents panel (/agents-info): running, finished and planned subagents with model, effort, task progress, context, cost and time.",
+  "author": {
+    "name": "RayenTellissy"
+  },
+  "types": "./types/index.d.ts"
+}
