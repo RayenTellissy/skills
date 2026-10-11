@@ -172,11 +172,36 @@ test("a worker run shows its role, model and the role's default effort before th
   }
 })
 
-test('a reviewer launch moves the band to Verify', async ($, on) => {
+test('a piece review leaves the band on Tasks; a reviewer once every task is done moves it to Verify', async ($, on) => {
   stubEngine(on)
-  on('agent.spawn', (_$, e) => ({ model: 'claude-opus-5-5', agentId: `id-${e.subagentType}` }))
-  await $.tool.call({ tool: TOOL, title: 'Fix login', phase: 'delegate', tasks: [{ title: 'Fix it', agent: 'worker' }] })
-  await $.agent.spawn(spawnInput('reviewer', 'Final review', 'Review.'))
+  let n = 0
+  on('agent.spawn', () => ({ model: 'claude-opus-5-5', agentId: `run-${++n}` }))
+  on('turn.complete', (_$, e) => ({ text: e.answer }))
+  const finish = (agentId: string) =>
+    $.turn.complete({ agentId, reason: 'answer', answer: '', durationMs: 1000, isAborted: false, turnId: `turn-${agentId}` })
+
+  await $.tool.call({
+    tool: TOOL,
+    title: 'Fix login',
+    phase: 'delegate',
+    tasks: [
+      { title: 'Fix it', agent: 'worker' },
+      { title: 'Fix logout', agent: 'worker' },
+    ],
+  })
+  await $.agent.spawn(spawnInput('worker', 'Fix it', 'Brief.')) // run-1
+  await $.agent.spawn(spawnInput('worker', 'Fix logout', 'Brief.')) // run-2
+  await finish('run-1')
+  await $.agent.spawn(spawnInput('reviewer', 'Review Fix it', 'Review.')) // run-3
+  for (const surface of SURFACES) {
+    const band = await drawn($, BAND, surface)
+    expect(band).toContain('Tasks 1/2')
+    expect(band).not.toContain('Verify')
+  }
+
+  await finish('run-2')
+  await finish('run-3')
+  await $.agent.spawn(spawnInput('reviewer', 'Final review', 'Review.')) // run-4
   for (const surface of SURFACES) expect(await drawn($, BAND, surface)).toContain('Verify')
 })
 

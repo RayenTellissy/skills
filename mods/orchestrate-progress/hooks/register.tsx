@@ -17,6 +17,7 @@ import {
   agentAlt,
   agentMeta,
   agentSvg,
+  allDoneOf,
   barText,
   colorOf,
   compactSvg,
@@ -63,11 +64,11 @@ const ORCH_NOTE = `## Progress bar
 
 The orchestrate-progress mod draws a progress bar above the prompt and an agents panel. Keep it current with \`${TOOL}\`: load it with ToolSearch (\`select:${TOOL}\`), in the same call as the session-title tool. Call it:
 
-- Once the plan is set, before the first launch: \`title\` (the goal in a few words), \`phase: "delegate"\`, and \`tasks\`, one per Agent launch you plan (not explorers or the final reviewer), in launch order, each with the \`agent\` type it goes to and \`after\` listing the task numbers it waits for. Launch each with an Agent \`description\` equal to its task title, so the panel matches runs to tasks.
+- Once the plan is set, before the first launch: \`title\` (the goal in a few words), \`phase: "delegate"\`, and \`tasks\`, one per Agent launch you plan (not explorers or reviewers), in launch order, each with the \`agent\` type it goes to and \`after\` listing the task numbers it waits for. Launch each with an Agent \`description\` equal to its task title, so the panel matches runs to tasks.
 - When you re-plan (a piece added, split or dropped): the full \`tasks\` list again.
 - Once, with the final report: \`finished: true\`.
 
-The rest follows the agents on their own: a task counts as done once its latest run finishes without error, and the reviewer's launch moves the bar to Verify. Fields left out keep their value. Each call is cheap and silent: make it in the same message as the launches or status note it goes with, never as a turn of its own. Skip it if ToolSearch does not find the tool.`
+The rest follows the agents on their own: a task counts as done once its latest run finishes without error, and a reviewer launched once every task is done moves the bar to Verify. Fields left out keep their value. Each call is cheap and silent: make it in the same message as the launches or status note it goes with, never as a turn of its own. Skip it if ToolSearch does not find the tool.`
 
 type ProgressInput = {
   title?: string
@@ -147,7 +148,7 @@ export const register: Register = on => {
       description:
         'Report /orchestrate progress to the progress bar above the prompt and the agents panel. ' +
         'Call it once the plan is set (title, tasks, phase "delegate"), on re-plans (tasks), and once at the end with finished: true. ' +
-        'Done tasks and the verify phase follow the agents on their own: a task is done once its latest run finishes without error, and a reviewer launch moves the bar to Verify. Fields left out keep their previous value.',
+        'Done tasks and the verify phase follow the agents on their own: a task is done once its latest run finishes without error, and a reviewer launched once every task is done moves the bar to Verify. Fields left out keep their previous value.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -158,7 +159,7 @@ export const register: Register = on => {
           tasks: {
             type: 'array',
             description:
-              'The planned Agent launches in order, numbered from 1 (not explorers or the final reviewer). Each title must equal the Agent tool `description` the task will be launched with, so the panel can match runs to tasks.',
+              'The planned Agent launches in order, numbered from 1 (not explorers or reviewers). Each title must equal the Agent tool `description` the task will be launched with, so the panel can match runs to tasks.',
             items: {
               type: 'object',
               properties: {
@@ -245,9 +246,17 @@ export const register: Register = on => {
     // Safety net: an orchestrate launch shows the bar even when the orchestrator
     // has not reported, and moves its phase along.
     if (role !== 'other') {
+      const list = await read($, agents)
       const f = await update($, flow, prev => {
         const base = prev && !prev.isFinished ? prev : blank()
-        const phase: Phase = role === 'reviewer' ? 'verify' : role !== 'explorer' && base.phase === 'plan' ? 'delegate' : base.phase
+        // Reviewers also check each piece while the rest still run; only one
+        // launched once every planned task is done starts Verify.
+        const phase: Phase =
+          role === 'reviewer' && allDoneOf(base, list)
+            ? 'verify'
+            : role !== 'explorer' && base.phase === 'plan'
+              ? 'delegate'
+              : base.phase
         return { ...base, phase }
       })
       await autoOpen($, f?.title ?? DEFAULT_TITLE)

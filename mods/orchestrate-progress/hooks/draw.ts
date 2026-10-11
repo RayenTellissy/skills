@@ -159,12 +159,18 @@ export const runningOf = (f: Flow, list: AgentRun[]): number => {
 
 // Planned tasks whose latest run (by title, in launch order) finished well. A
 // task whose latest run is still going or failed, or that never ran, is not done.
-export const doneOf = (f: Flow, list: AgentRun[]): number => {
+const doneTasks = (f: Flow, list: AgentRun[]): number => {
   const latest = new Map<string, AgentRun>()
   for (const a of list) latest.set(norm(a.description), a)
-  const done = f.tasks.filter(t => latest.get(norm(t.title))?.status === 'done').length
+  return f.tasks.filter(t => latest.get(norm(t.title))?.status === 'done').length
+}
+
+export const doneOf = (f: Flow, list: AgentRun[]): number => {
+  const done = doneTasks(f, list)
   return f.total ? Math.min(f.total, done) : done
 }
+
+export const allDoneOf = (f: Flow, list: AgentRun[]): boolean => doneTasks(f, list) === f.tasks.length
 
 export const label = (f: Flow, running: number, done: number): string => {
   if (f.isFinished) return S.done

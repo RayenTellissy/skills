@@ -9,7 +9,7 @@ For the rest of this session you plan, delegate, and integrate. Subagents do all
 
 ## When to skip it
 
-Orchestration pays off when a task splits into about three or more pieces that can run in parallel. With fewer pieces, or when each step depends on the one before, writing briefs and waiting on agents costs more time than it saves. Unless the user explicitly asked you to delegate, say so in one line and do the work directly instead of following the rest of this skill. If they did ask and the task is small, take the lean path: one worker per piece, a tester only where [Testers](#testers) requires one, and the final review.
+Orchestration pays off when a task splits into about three or more pieces that can run in parallel. With fewer pieces, or when each step depends on the one before, writing briefs and waiting on agents costs more time than it saves. Unless the user explicitly asked you to delegate, say so in one line and do the work directly instead of following the rest of this skill. If they did ask and the task is small, take the lean path: one worker per piece, a tester only where [Testers](#testers) requires one, and the final review with no piece reviews.
 
 Whichever path you take, the final review in [Verify](#verify) still runs before you report done.
 
@@ -17,7 +17,7 @@ Whichever path you take, the final review in [Verify](#verify) still runs before
 
 Understand the request, build the plan (pieces, dependencies, order, and the files each piece owns), write briefs, judge reports, resolve conflicts between pieces, track state in a todo list with each agent's ID beside its piece, report to the user.
 
-Git and GitHub glue is yours, so no agent has to touch branches in the shared checkout. Before the first agent edits anything, create the work branch if the user's rules call for one, record `git rev-parse HEAD` as the session's base, and note any files already dirty: they are the user's and stay out of scope unless the task names them. You also make the checkpoint commits [Worktrees](#worktrees) needs, bring worktree work back, and commit, push, and open or merge the pull requests the user asks for. Stage by path; `git add -A` would also stage agent worktrees.
+Git and GitHub glue is yours, so no agent has to touch branches in the shared checkout. Before the first agent edits anything, create the work branch if the user's rules call for one, record `git rev-parse HEAD` as the session's base, and note any files already dirty: they are the user's and stay out of scope unless the task names them. You also make the checkpoint commits [Worktrees](#worktrees) and [Verify](#verify) need, bring worktree work back, and commit, push, and open or merge the pull requests the user asks for. Stage by path; `git add -A` would also stage agent worktrees.
 
 In the same message as your first launches, load `mcp__ccd_session_mgmt__set_session_title` with ToolSearch when it is available (the Claude desktop app); on your next turn, rename the session to a short title for the goal with `session_id: "self"`.
 
@@ -34,7 +34,7 @@ Seven agents, all pinned to Opus 5.5. Effort cannot be set per call, so pick the
 - `subagent_type: "worker"` (medium effort): the default for implementation, fixes, writing, and anything else that changes files.
 - `subagent_type: "specialist"` (high effort): pieces that need a design decision the brief cannot settle, tricky logic, unmapped cross-module work, conflict resolution between pieces, and escalations from `worker`.
 - `subagent_type: "explorer"` (low effort, read-only): locating code, research, "does X exist" checks.
-- `subagent_type: "reviewer"` (extra-high effort, never edits): the final verification pass.
+- `subagent_type: "reviewer"` (extra-high effort, never edits): a review of each piece as it finishes, and the final verification pass.
 - `subagent_type: "bug-hunter"` (extra-high effort, no source edits): hunting for bugs and diagnosing unexpected behavior.
 - `subagent_type: "tester"` (high effort, edits only tests): writing tests from a piece's contract, independently of the worker that implements it.
 - `subagent_type: "designer"` (max effort, no source edits): UI design pieces in Paper or another design tool the brief names. The brief must give a scratchpad directory for exported screenshots.
@@ -83,16 +83,22 @@ Subagents load the same CLAUDE.md files you do, so do not paste them; state only
 
 ## Integrate
 
-Judge reports against the plan, not the agent's claim. A report without the exact commands it ran and their results goes back to the agent. A Suspected bug inside the task's scope goes to another hunt or a tester to confirm or clear; never drop it. Each Unresolved item goes to an agent that can check it, or to the user as not verified. Conflicts between pieces go to one `specialist` with both sides and a decision.
+Judge reports against the plan, not the agent's claim. A report without the exact commands it ran and their results goes back to the agent. A Suspected bug inside the task's scope, from a hunter or a reviewer, goes to a `bug-hunter` or a tester to confirm or clear; never drop it. Each Unresolved item goes to an agent that can check it, or to the user as not verified. Conflicts between pieces go to one `specialist` with both sides and a decision.
 
 ## Verify
 
-Once no other agent is running, delegate the final verification pass to `reviewer` and wait for it. Give it: the user's request verbatim, the plan with each piece's acceptance criteria, the session's base commit and the files that were already dirty, the tests each tester added and whether each was proven, every edit you made yourself, every check the reports claim passed (to rerun), for each bug fix the hunter's reproduction, and which pieces change what a user sees or clicks, so it walks them in the running app. Leave out the agents' claims that their work is correct.
+Every piece that changes files gets a piece review as soon as it is done, while other pieces still run, so its defects are found and fixed alongside the rest of the work instead of queueing at the end. The whole change then gets a final pass. Skip the piece review on the lean path, and for a piece that is done when no other piece is still in progress: the final pass comes next and reviews it in full.
 
-When the reviewer reports Failed items, commit a checkpoint, then send each item, with its reproduction, to the agent that built that piece via SendMessage, or to a fresh agent of the same type with the original brief if that agent is gone; a bug a test could have caught gets a tester too. Once the fixes are in, launch a fresh `reviewer` for the recheck instead of continuing the first one: a fix round outlasts the subagent prompt cache, so resuming would pay full price to re-send the whole first review. Give it the user's request verbatim, the acceptance criteria, each Failed item with its reproduction, the fix diff as `git diff <checkpoint>`, every check the previous pass ran, and which flows a user sees. When one claim in a report proved false, list every claim in that report for it to recheck too. Stop after two fix rounds: whatever still fails goes to the user as failing, with its reproduction.
+Commit a checkpoint before every review and recheck, staging by path the files it covers, so each review reads a fixed commit and later changes show against it.
 
-Any edit after the reviewer's last pass, by you or an agent, reopens this step.
+A piece is done when its agent reports done and, if it has a tester, the tests are in, pass, and are each proven or reported unprovable. Then launch a `reviewer` for a piece review. Give it: the user's request verbatim, the piece's acceptance criteria, the base commit, the piece's owned paths, the tests its tester added and whether each was proven, every check the piece's reports claim passed (to rerun), and for a bug fix the hunter's reproduction. Leave out the agents' claims that their work is correct. Pieces that depend on this one launch when it is done, without waiting for its review; if a fix from the review changes a contract a running piece uses, tell that piece's agent with SendMessage.
+
+Once no other agent is running, launch a `reviewer` for the final pass and wait for it. Give it: the user's request verbatim, the plan with each piece's acceptance criteria, the base commit and the files that were already dirty, each piece whose last review had no Failed items with its owned paths and that review's checkpoint, the tests each tester added and whether each was proven, every edit you made yourself, every check the other pieces' reports claim passed (to rerun), for each bug fix the hunter's reproduction, and which pieces change what a user sees or clicks, so it walks them in the running app. Leave out the agents' claims that their work is correct.
+
+When a review reports Failed items, send each, with its reproduction, to the agent that built that piece via SendMessage, or to a fresh agent of the same type with the original brief if that agent is gone; a bug a test could have caught gets a tester too. Its Suspected items go to a `bug-hunter` or a tester as [Integrate](#integrate) says, and each one they confirm joins the Failed items. Once the fixes are in, launch a fresh `reviewer` for the recheck instead of continuing the first one: a fix round outlasts the subagent prompt cache, so resuming would pay full price to re-send the whole first review. Give it which pass it rechecks, the user's request verbatim, the acceptance criteria, each Failed item with its reproduction, the fix diff as `git diff <previous checkpoint> <new checkpoint>`, every check the previous pass ran, and, for the final pass, which flows a user sees. When one claim in a report proved false, list every claim in that report for it to recheck too. Each review gets at most two fix rounds: whatever still fails goes to the user as failing, with its reproduction.
+
+Any edit after the final pass's last run, by you or an agent, reopens the final pass.
 
 ## Report
 
-Status notes stay brief: delegated, back, next, blocked. The final report says, in your own words: what changed; what was verified, by which check, with what result; what was not verified and why; anything still failing or suspected; and the reviewer's Needs manual check list, as steps the user can follow on localhost. Call the task done only when the reviewer's last pass has no Failed items and nothing changed after it.
+Status notes stay brief: delegated, back, next, blocked. The final report says, in your own words: what changed; what was verified, by which check, with what result; what was not verified and why; anything still failing or suspected; and the final pass's Needs manual check list, as steps the user can follow on localhost. Call the task done only when the final pass's last run has no Failed items, no Suspected item is still waiting on a hunter or tester, and nothing changed after it.
