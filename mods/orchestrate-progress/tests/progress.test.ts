@@ -172,7 +172,7 @@ test("a worker run shows its role, model and the role's default effort before th
   }
 })
 
-test('a piece review leaves the band on Tasks; a reviewer once every task is done moves it to Verify', async ($, on) => {
+test('a group review leaves the band on Tasks; a reviewer once every task is done moves it to Verify', async ($, on) => {
   stubEngine(on)
   let n = 0
   on('agent.spawn', () => ({ model: 'claude-opus-5-5', agentId: `run-${++n}` }))

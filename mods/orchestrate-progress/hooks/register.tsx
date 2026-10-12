@@ -249,7 +249,7 @@ export const register: Register = on => {
       const list = await read($, agents)
       const f = await update($, flow, prev => {
         const base = prev && !prev.isFinished ? prev : blank()
-        // Reviewers also check each piece while the rest still run; only one
+        // Reviewers also check groups of pieces while the rest still run; only one
         // launched once every planned task is done starts Verify.
         const phase: Phase =
           role === 'reviewer' && allDoneOf(base, list)

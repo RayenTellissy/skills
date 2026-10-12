@@ -18,7 +18,7 @@ The skill and agent files stay unchanged. The mod adds its instructions to the s
 - When `/orchestrate` expands, a "Progress bar" section is appended telling the orchestrator to report only the plan (and the full plan again on a re-plan) and the end through `mcp__orchestrate-progress__progress`, launching each task with an Agent description equal to its title.
 - Agent briefs reach the engine unchanged; the mod only records each launch and how it ended for the panel.
 
-Everything else follows the agents. A planned task is done when its latest run (matched by description) finished without error; a run still going or failed, or no run yet, leaves it open, and runs that match no task do not count. A non-explorer launch moves Plan to Tasks, and a reviewer launched once every planned task is done moves the bar to Verify (reviews of single pieces while others still run leave it on Tasks), so the bar also works when the orchestrator never reports.
+Everything else follows the agents. A planned task is done when its latest run (matched by description) finished without error; a run still going or failed, or no run yet, leaves it open, and runs that match no task do not count. A non-explorer launch moves Plan to Tasks, and a reviewer launched once every planned task is done moves the bar to Verify (group reviews while other pieces still run leave it on Tasks), so the bar also works when the orchestrator never reports.
 
 Cost is a rough estimate from token counts and a built-in per-model price table (`PRICES` in `hooks/draw.ts`), not a bill.
 
