@@ -29,6 +29,23 @@ Standing orders:
 Report: the shape your agent definition gives.
 ```
 
+## Combined check
+
+For the `worker` launched beside a group review, in a worktree.
+
+```text
+First run `git reset --hard <the group's checkpoint SHA>` in your worktree and confirm `git log -1 --format=%H` prints it. Change no source or test file, and commit nothing.
+Goal: run the repository's type check and tests on this checkpoint and report every failure.
+Run: <the exact commands>. If the tests would share a database, fixed ports, or timing-sensitive suites with running agents, run the type check only and say so.
+Setup: run the dependency install and code generation these checks need, in your worktree only.
+Owners: <each piece with the paths it owns>
+Running pieces: <each piece still running, with its Owns and Adds to files and its goal, or "none">
+Time limit: <minutes>
+Standing orders:
+1. <word for word>
+Report: the shape your agent definition gives. Under Verified, give each failure's command, failing path, and error or test, with the piece whose change caused it, or both pieces when it sits between two. A failure a running piece's unfinished work could explain goes under Not verified, naming that piece.
+```
+
 ## Reviews
 
 For `reviewer`, one template per pass.
@@ -41,7 +58,8 @@ Acceptance criteria: <each piece's, word for word>
 Base commit: <SHA>
 Paths: <the paths the group's pieces own>
 Outside edits: <lines other pieces added in those paths, each with the piece that added it, or "none">
-Tests: <each test the group's testers added, and whether it was proven>
+Running pieces: <each piece still running whose Adds to includes these paths: its title, those files, and its goal, or "none">
+Tests: <each test the group's testers added, and whether it is proven, unprovable, or being proven alongside this review>
 Rerun: <every check the pieces' reports claim passed>
 [Bug fix] Reproduction: <the hunter's reproduction>
 Standing orders: <word for word>
@@ -54,9 +72,11 @@ Branch: Stay on branch `<name>`. Do not create or switch branches, stash, reset,
 Request: <word for word>
 Plan: <each piece with its acceptance criteria, word for word>
 Base commit: <SHA>. Already dirty: <paths, or "none">
+[Split code pass] Share: <the groups you cover and the seams where they call into other groups>. The fields below list only your share. Repository checks: <yours | <reviewer> runs them, so run no repository-wide tests, type check, lint, or build>.
 Reviewed groups: <for each, its owned paths, the checkpoint its last review read, and that review's Failed items with their reproductions>
 Shared files: <each file more than one piece changed, with those pieces, or "none">
 Unexplained paths: <changed paths no piece accounts for, or "none">
+Outside edits: <each outside edit a group review left to a running piece, with the piece that added it, or "none">
 Tests: <each test the testers added, and whether it was proven>
 Orchestrator's edits: <every edit the orchestrator made, or "none">
 Rerun: <every check the reports of pieces outside the reviewed groups claim passed>
@@ -72,8 +92,9 @@ Branch: Stay on branch `<name>`. Do not create or switch branches, stash, reset,
 Request: <word for word>
 Plan: <each piece with its acceptance criteria, word for word>
 Base commit: <SHA>
+[One group] Group: <the group and its paths>. Other agents may still edit the checkout. You are the one agent that may start the dev server or change the database until you report.
 Flows: <the pieces that change what a user sees or clicks, and the flows to walk>
-Reproductions: <the reproduction of each bug fix a user can see>
+Reproductions: <the reproduction of each bug fix a user can see, and in the final pass each Failed item a group's app pass reported>
 Standing orders: <word for word>
 Time limit: <minutes>
 ```

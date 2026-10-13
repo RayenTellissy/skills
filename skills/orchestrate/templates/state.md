@@ -14,7 +14,7 @@ Standing orders:
 Pieces:
 P1 <title, also its Agent description>
   Agent: <type>, <agent ID>, launched <time from `date`>, time limit <minutes>
-  Status: <planned | running | done | partial | blocked | replaced by P1b>
+  Status: <planned | running | ready | done | partial | blocked | replaced by P1b>
   Owns: <paths>
   Adds to: <files, or "none">
   Acceptance criteria:
@@ -26,9 +26,9 @@ P1 <title, also its Agent description>
   Review group: <G1, or "none">
 
 Review groups:
-G1 <pieces>: checkpoint <SHA>, reviewer <agent ID>, Failed <items and who fixes each>, Suspected <items and who checks each>
+G1 <pieces>: checkpoint <SHA>, reviewer <agent ID>, combined check <agent ID>, app pass <agent ID, or "none">, running pieces named <pieces, or "none">, Failed <items and who fixes each>, Suspected <items and who checks each>
 
-Final pass: <checkpoint, reviewer IDs, fix rounds used of two>
+Final pass: <checkpoint, each reviewer's ID and share, fix rounds used of two>
 Dismissed: <each item, the reason, and the quotes>
 Unexplained paths: <changed paths no piece accounts for>
 Orchestrator's edits: <each path and what changed>
