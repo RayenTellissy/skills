@@ -10,6 +10,7 @@ Request: <the user's request, word for word>
 Playbook: <the matched playbook, or "none">
 1. <each step word for word, then the piece or agent that carries it, or `skip: <reason>`>
 
+Explanations: <each how or why explanation's path and the area it covers, or "none">
 Sketch: <the paths of your architect sketch and rationale, or "none">
 
 Standing orders:

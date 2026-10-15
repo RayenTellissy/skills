@@ -19,6 +19,7 @@ Verify: <the exact commands, or the flows to walk>
 [Reads or writes stored data, or runs on every request] Scale: <row counts, request rate, payload size, as the user or the repository states them, or "unknown, assume production size">
 Time limit: <minutes>
 Principles: <full path to principles.md>
+[Works in an explained area] Explanations: <the path of each how or why explanation covering this piece's area>. Read each in full before any work.
 [Piece runs a playbook step] Playbook: <the playbook's name, its bold opening line and rule paragraphs, and the steps this agent carries, word for word, with each pstack name read as the skill's Playbooks section says>
 Standing orders:
 1. <word for word>
@@ -28,6 +29,7 @@ Standing orders:
 [Bug hunt] Hunt <the concern>. <You have the running app. | <the agent named> has the running app: do not start a server or drive the browser.>
 [Designer] Save exported screenshots to <a scratchpad directory>.
 [Runs a how or why template] Template: <its full path under how/ or why/>, with its placeholders filled in: <each placeholder and its value, word for word>
+[Explainer] Output: <the scratchpad file to write the explanation to>
 [Builds against a sketch] Sketch: <your sketch and rationale paths>. The synthesized sketch is the contract. Deviations from it are signal to surface under Decisions, not friction to absorb silently.
 [Continuing an earlier agent's piece] Continue from the changes already on disk: review them, keep what holds up, and fix or revert the rest. The earlier agent's brief was this one except for <its Goal, and any other field that differed>. Its report: <...>. New work: <...>. <Worktree path and branch, if it ran in one.>
 Report: the shape your agent definition gives.
@@ -66,6 +68,7 @@ Rerun: <every check the pieces' reports claim passed, and the Verify commands of
 [Bug fix] Reproduction: <the hunter's reproduction>
 Time limit: <minutes>
 Principles: <full path to principles.md>
+[Reviews an explained area] Explanations: <the path of each how or why explanation covering the paths under review>. Read each in full before reviewing.
 ```
 
 ```text
@@ -85,6 +88,7 @@ Reproductions: <the hunter's reproduction for each bug fix>
 App pass: <alongside you | after <the agent that has the dev server> reports | none>
 Time limit: <minutes>
 Principles: <full path to principles.md>
+[Reviews an explained area] Explanations: <the path of each how or why explanation covering the paths under review>. Read each in full before reviewing.
 ```
 
 ```text
@@ -97,6 +101,7 @@ Flows: <the pieces that change what a user sees or clicks, and the flows to walk
 Reproductions: <the reproduction of each bug fix a user can see, and in the final pass each Failed item a group's app pass reported that has been fixed since>
 Time limit: <minutes>
 Principles: <full path to principles.md>
+[Reviews an explained area] Explanations: <the path of each how or why explanation covering the paths under review>. Read each in full before reviewing.
 ```
 
 ```text
@@ -111,4 +116,5 @@ Rerun: <every check the previous pass ran>
 Flows: <the flows a user sees>
 Time limit: <minutes>
 Principles: <full path to principles.md>
+[Reviews an explained area] Explanations: <the path of each how or why explanation covering the paths under review>. Read each in full before reviewing.
 ```
