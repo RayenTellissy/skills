@@ -4,7 +4,7 @@ Copy the template for the agent you are briefing and fill every field that appli
 
 ## Piece
 
-For `worker`, `specialist`, `tester`, `bug-hunter`, `explorer`, and `designer`.
+For `worker`, `specialist`, `tester`, `bug-hunter`, `explorer`, `explainer`, and `designer`.
 
 ```text
 [Worktree agent, first line] First run `git reset --hard <SHA>` in your worktree and confirm `git log -1 --format=%H` prints `<SHA>`. Commit your work there before reporting, and report your worktree path, branch, and final commit.
@@ -18,6 +18,8 @@ Base commit: <the session's base SHA>
 Verify: <the exact commands, or the flows to walk>
 [Reads or writes stored data, or runs on every request] Scale: <row counts, request rate, payload size, as the user or the repository states them, or "unknown, assume production size">
 Time limit: <minutes>
+Principles: <full path to principles.md>
+[Piece runs a playbook step] Playbook: <the playbook's name, its bold opening line and rule paragraphs, and the steps this agent carries, word for word, with each pstack name read as the skill's Playbooks section says>
 Standing orders:
 1. <word for word>
 [Shared checkout] Stay on branch `<name>`. Do not create or switch branches, stash, reset, commit, or push: other agents share this checkout. Run checks only for the files you own; a failure in a file you do not own belongs to another agent, so report it instead of fixing or reverting it. Run no repo-wide formatter, dependency install, code generation, or migration unless this brief assigns it. <Only you | Only <the agent named> | No agent> may start the dev server or change the database.
@@ -25,6 +27,8 @@ Standing orders:
 [Tester] You own <test paths>. <For a bug fix, the bug report.>
 [Bug hunt] Hunt <the concern>. <You have the running app. | <the agent named> has the running app: do not start a server or drive the browser.>
 [Designer] Save exported screenshots to <a scratchpad directory>.
+[Runs a how or why template] Template: <its full path under how/ or why/>, with its placeholders filled in: <each placeholder and its value, word for word>
+[Builds against a sketch] Sketch: <your sketch and rationale paths>. The synthesized sketch is the contract. Deviations from it are signal to surface under Decisions, not friction to absorb silently.
 [Continuing an earlier agent's piece] Continue from the changes already on disk: review them, keep what holds up, and fix or revert the rest. The earlier agent's brief was this one except for <its Goal, and any other field that differed>. Its report: <...>. New work: <...>. <Worktree path and branch, if it ran in one.>
 Report: the shape your agent definition gives.
 ```
@@ -41,6 +45,7 @@ Run: <the exact commands>. If the tests would share a database, fixed ports, or 
 Setup: run the dependency install and code generation these checks need, in your worktree only.
 Running pieces: <each piece still running, by its number in the plan, or "none">
 Time limit: <minutes>
+Principles: <full path to principles.md>
 Report: the shape your agent definition gives. Under Verified, give each failure's command, failing path, and error or test, with the piece whose change caused it, or both pieces when it sits between two. A failure a running piece's unfinished work could explain goes under Not verified, naming that piece.
 ```
 
@@ -60,6 +65,7 @@ Tests: <each test the group's testers added, and whether it is proven, unprovabl
 Rerun: <every check the pieces' reports claim passed, and the Verify commands of any piece whose report gave none, marked never run>
 [Bug fix] Reproduction: <the hunter's reproduction>
 Time limit: <minutes>
+Principles: <full path to principles.md>
 ```
 
 ```text
@@ -78,6 +84,7 @@ Rerun: <every check the reports of pieces outside the reviewed groups claim pass
 Reproductions: <the hunter's reproduction for each bug fix>
 App pass: <alongside you | after <the agent that has the dev server> reports | none>
 Time limit: <minutes>
+Principles: <full path to principles.md>
 ```
 
 ```text
@@ -89,6 +96,7 @@ Base commit: <SHA>
 Flows: <the pieces that change what a user sees or clicks, and the flows to walk>
 Reproductions: <the reproduction of each bug fix a user can see, and in the final pass each Failed item a group's app pass reported that has been fixed since>
 Time limit: <minutes>
+Principles: <full path to principles.md>
 ```
 
 ```text
@@ -102,4 +110,5 @@ Rerun: <every check the previous pass ran>
 [A group review alongside the final pass never reported] Review in full: <the group and its paths>
 Flows: <the flows a user sees>
 Time limit: <minutes>
+Principles: <full path to principles.md>
 ```

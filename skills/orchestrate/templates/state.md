@@ -7,6 +7,11 @@ Keep the run in two files in your scratchpad directory, in these layouts. Write 
 ```text
 Request: <the user's request, word for word>
 
+Playbook: <the matched playbook, or "none">
+1. <each step word for word, then the piece or agent that carries it, or `skip: <reason>`>
+
+Sketch: <the paths of your architect sketch and rationale, or "none">
+
 Standing orders:
 1. <one rule per line, word for word as every brief carries it>
 
@@ -14,6 +19,7 @@ Pieces:
 P1 <title, also its Agent description>
   Owns: <paths>
   Adds to: <files, or "none">
+  Playbook: <its own playbook and steps, laid out as above, when it differs from the request's, or "none">
   Verify: <the exact commands, or the flows to walk>
   Acceptance criteria:
   - <word for word; every brief for this piece copies them from here>
@@ -40,6 +46,7 @@ P1 <title>
 Review groups:
 G1 <pieces>: checkpoint <SHA>, reviewer <agent ID>, combined check <agent ID>, app pass <agent ID, waiting for <agent ID>, or "none">, running pieces named <pieces, or "none">, Failed <items and who fixes each>, Suspected <items and who checks each>
 
+Playbook steps: <each step's number in the plan and whether it is pending, running, or done>
 Final pass: <checkpoint, each reviewer's ID and share, the agents running alongside it, items held for the fix round, fix rounds used of two>
 Dismissed: <each item, the reason, and the quotes>
 Unexplained paths: <changed paths no piece accounts for>

@@ -39,13 +39,14 @@ export const S = {
 // (all pinned to Opus 5.5), shown for planned tasks and for runs whose effort
 // the engine has not reported yet.
 
-export const ROLES = ['worker', 'specialist', 'explorer', 'tester', 'bug-hunter', 'designer', 'reviewer'] as const
+export const ROLES = ['worker', 'specialist', 'explorer', 'explainer', 'tester', 'bug-hunter', 'designer', 'reviewer'] as const
 export type Role = (typeof ROLES)[number]
 
 const ROLE_COLOR: Record<Role | 'other', string> = {
   worker: '#378ADD',
   specialist: '#7F77DD',
   explorer: '#1D9E75',
+  explainer: '#639922',
   tester: '#C9487F',
   'bug-hunter': '#D85A30',
   designer: '#2AA5B8',
@@ -57,6 +58,7 @@ const ROLE_EFFORT: Record<Role, string> = {
   worker: 'medium',
   specialist: 'high',
   explorer: 'low',
+  explainer: 'xhigh',
   tester: 'high',
   'bug-hunter': 'xhigh',
   designer: 'max',

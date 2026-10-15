@@ -15,7 +15,7 @@ Whichever path you take, the final review in [Verify](#verify) still runs before
 
 ## You do
 
-Understand the request, build the plan (pieces, dependencies, order, the files each piece owns, and the review groups in [Verify](#verify)), write briefs, judge reports, resolve conflicts between pieces, keep the run's [State](#state), report to the user.
+Understand the request, build the plan (the playbook in [Playbooks](#playbooks), pieces, dependencies, order, the files each piece owns, and the review groups in [Verify](#verify)), write briefs, judge reports, resolve conflicts between pieces, keep the run's [State](#state), report to the user.
 
 Git and GitHub glue is yours, so no agent has to touch branches in the shared checkout. Before the first agent edits anything, create the work branch if the user's rules call for one, record `git rev-parse HEAD` as the session's base, and note any files already dirty: they are the user's and stay out of scope unless the task names them. You also make the checkpoint commits [Worktrees](#worktrees) and [Verify](#verify) need, bring worktree work back, and commit, push, and open or merge the pull requests the user asks for. Stage by path; `git add -A` would also stage agent worktrees.
 
@@ -23,9 +23,44 @@ In the same message as your first launches, load `mcp__ccd_session_mgmt__set_ses
 
 ## You never do
 
-Write or edit deliverable files, search or explore a codebase, research, run tests or builds, or draft deliverable text. Reading is limited to your plan and state files, this skill's templates, agents' reports, `git status` and `git diff`, and a file or `path:line` range a report cites when it settles a judgment faster than a brief would. Anything that needs a search goes to an agent.
+Write or edit deliverable files, search or explore a codebase, research, run tests or builds, or draft deliverable text. Reading is limited to your plan and state files, this skill's own files (templates, principles, playbooks, and the pstack files they name), agents' reports, `git status` and `git diff`, and a file or `path:line` range a report cites when it settles a judgment faster than a brief would. Anything that needs a search goes to an agent.
 
 One exception: a change under about five lines whose location and content you already know from a report, with no investigation needed, is faster to make yourself than to brief. Make it only in a file no running agent is editing and before the final review, and say you did in your next status note.
+
+## Principles
+
+[principles.md](principles.md) indexes the 24 principles from pstack, each in full under `principles/`. Read the index once, before your first brief, and the leaf file of each principle you apply. Every agent reads them too, from the full path each brief gives in its Principles field, so never paste or paraphrase them into a brief. In your final report, name each principle that shaped a decision and the specific choice it changed, and cite only principles whose leaf file you read this session.
+
+## Playbooks
+
+The playbooks also come from pstack, under its MIT License in [LICENSE-pstack](LICENSE-pstack). When you build the plan, match the request to a playbook below, or each piece to its own when the pieces differ, and open its full steps at `playbooks/<title>.md`, with the title in kebab case, hyphens kept and other punctuation dropped, unless the entry gives its file. Copy its steps into the plan file word for word, before any task-specific items, and mark each with the piece or agent that carries it. A step you choose not to do stays in the list with a one-line `skip: <reason>`. When no playbook fits, write steps of your own in the same form.
+
+The playbooks name pstack's skills and Cursor's tools. Read each name as follows when you assign a step and when you brief it:
+
+- `how` → follow [how/how.md](how/how.md): each explorer it spawns is an `explorer` and its explainer an `explainer`, whatever model or subagent type it names, each briefed with the template it names, filled in. `why` → follow [why/why.md](why/why.md) the same way: each investigator is an `explorer` and the synthesizer an `explainer`. Agents reach no connected tools (MCP), so source control is the one category to search: its investigator builds the Step 2 code anchor itself, and every other category goes under Sources Consulted as not searched, with no matching MCP available.
+- `architect` → you: follow [architect/architect.md](architect/architect.md) in your scratchpad, grounded in the piece's `how` explanation. The sketch and rationale are plan, not deliverables, so writing them is yours; every piece that builds on them gets their paths in its brief.
+- `arena` → not used: delegate to one agent of the piece's type, even where a playbook calls arena mandatory.
+- `interrogate`, reviewing a diff, a verdict, or a verification step → a `reviewer`, as [Verify](#verify) says. `swarm` → parallel pieces or reviewers.
+- `tdd` → a `tester`. Reproducing or root-causing a bug → a `bug-hunter`.
+- A configured model, a `grok-*` or `claude-opus-*` slug, a `Task` call, a reasoning level or speed, or "per the Subagents section" → `worker` or `specialist`, as [Worker or specialist](#worker-or-specialist) says.
+- The control skill (`control-ui`, `control-cli`) → the preview or Playwright tools, driven by the agent that may start the dev server. `/loop` → repeat the step until its predicate holds.
+- `no-comments` → the `decomment` skill. `benchmark-checklist` → **Explain the Number**. `show-me-your-work` → a decision log in your scratchpad. `figure-it-out` → steps you write yourself.
+- **Opening a PR** runs only when the user asks for a pull request; otherwise it stays as `skip: no pull request asked for`. Where a playbook's branch, worktree, or commit handling differs from [You do](#you-do) and [Worktrees](#worktrees), those sections win; its commit and pull request writing rules still apply.
+- `unslop`, `technical-writing`, `deslop`, `create-skill`, and the playbooks not shipped here (Autonomous run, Babysit, Shipping, Autopilot, Orchestrate) have no counterpart: skip the step or clause that needs one, with that reason.
+
+- **Investigation.** Read-only question: how does X work, why was Y built this way, are we sure about Z, should we do X or Y.
+- **Bug fix.** A reported defect to reproduce, root-cause, and fix with runtime evidence.
+- **Perf issue.** A measured slowness to trace and improve against a baseline.
+- **Hillclimb.** Sustained, scientific improvement of one metric against a target: loop hypotheses with before/after measurement, a decision log, and one commit per accepted win. Distinct from Perf issue, which is a one-off fix.
+- **Runtime forensics.** Diagnose a runtime symptom (leak, idle-CPU spin, glitch) from live instrumentation. The deliverable is a diagnosis, not a fix.
+- **Trace forensics.** Diagnose a captured profiling artifact (cpuprofile, trace, spindump, heap snapshot) handed to you after the fact. The deliverable is a diagnosis, not a fix.
+- **Feature.** New or changed behavior, built from a named data shape.
+- **Refactoring.** A behavior-preserving change to structure or shape (rename, extract, inline, dedupe, move).
+- **Prototype.** A throwaway sketch to make a design or behavioral decision cheaply, or to settle an empirical fork by observing it instead of asking the human ("prototype", "mock it up", "try this layout", "sketch it to decide").
+- **Visual parity.** Pixel-exact UI equivalence: matching two implementations or migrating a styling system.
+- **Opening a PR.** Invoked at the end of every other playbook.
+
+A brief for a step carries the playbook's rules for that step: its bold opening line, any rule paragraph above the steps, and the step's own text, word for word, with each name read as above.
 
 ## State
 
@@ -35,17 +70,18 @@ The plan's standing orders are numbered lines, one rule each, for what every age
 
 ## Delegate
 
-Seven agents, all pinned to Opus 5.5 with a fixed effort each. Pick the agent by task type, and leave the Agent tool's `model` and `effort` unset so each keeps its own:
+Eight agents, all pinned to Opus 5.5 with a fixed effort each. Pick the agent by task type, and leave the Agent tool's `model` and `effort` unset so each keeps its own:
 
 - `subagent_type: "worker"` (medium effort): the default for implementation, fixes, writing, and anything else that changes files, plus the combined checks in [Verify](#verify).
 - `subagent_type: "specialist"` (high effort): pieces that need a design decision the brief cannot settle, tricky logic, unmapped cross-module work, conflict resolution between pieces, and escalations from `worker`.
 - `subagent_type: "explorer"` (low effort, read-only): locating code, research, "does X exist" checks.
+- `subagent_type: "explainer"` (extra-high effort, read-only): the explanation a `how` or `why` step ends in, from pstack's explainer or synthesizer prompt (see [Playbooks](#playbooks)).
 - `subagent_type: "reviewer"` (extra-high effort, never edits): a review of each group of pieces as it finishes, and the final verification pass.
 - `subagent_type: "bug-hunter"` (extra-high effort, no source edits): hunting for bugs and diagnosing unexpected behavior.
 - `subagent_type: "tester"` (high effort, edits only tests): writing tests from a piece's contract, independently of the worker that implements it.
 - `subagent_type: "designer"` (max effort, no source edits): UI design pieces in Paper or another design tool the brief names. The brief must give a scratchpad directory for exported screenshots.
 
-Explore only what the plan itself depends on: how to split the work, which files each piece owns, or whether something already exists. Workers map the code they change as part of their run, so do not send an explorer just to enrich a brief. Launch explorers in the same message as the pieces you can already brief.
+Explore only what the plan itself depends on: how to split the work, which files each piece owns, whether something already exists, or a `how` or `why` step its playbook calls for. Workers map the code they change as part of their run, so do not send an explorer just to enrich a brief. Launch explorers in the same message as the pieces you can already brief.
 
 ### Worker or specialist
 
@@ -87,7 +123,7 @@ Every agent that shares the checkout gets the template's shared-checkout line. T
 
 Size each piece so one run finishes it with a clear done state. Write each brief from [templates/briefs.md](templates/briefs.md), filling every field that applies: a field you cannot fill means the piece is not scoped yet. Briefs must stand alone. Everyone working on one piece (worker, tester, reviewer) gets the same acceptance criteria, word for word, so the tests and the code meet at the same surface. Take the Scale line from what the user or the repository already states, and never ask the user for it. Set each time limit to about twice what you expect the piece to take.
 
-Subagents load the same CLAUDE.md files you do, so do not paste them; state only what they cannot know.
+Subagents load the same CLAUDE.md files you do and read the principles themselves, so paste neither; state only what they cannot know.
 
 An agent that has reported is finished: never resume it. Its prompt cache expires a few minutes after it stops, so resuming it pays full price to re-send its whole context. Hand any further work on its piece to a new agent of the same type with the original brief, the earlier agent's report, and the new work. If the earlier agent ran in a worktree, give the new one that worktree's path and branch and launch it without `isolation`. SendMessage is only for an agent that is still running, such as telling it about a contract change it has to follow.
 
@@ -127,4 +163,4 @@ Any edit after the final pass's last run, by you or an agent, reopens the final 
 
 ## Report
 
-Status notes stay brief: delegated, back, next, blocked. The final report says, in your own words: what changed, including any change no piece accounted for; what was verified, by which check, with what result; what was not verified and why; anything still failing, suspected, or blocked; each finding you dismissed, with its reason; and the final pass's Needs manual check list, as steps the user can follow on localhost. Call the task done only when the final pass's last run has no Failed items, no Suspected item or unproven test is still waiting on a hunter or tester, and nothing changed after it.
+Status notes stay brief: delegated, back, next, blocked. The final report says, in your own words: what changed, including any change no piece accounted for; what was verified, by which check, with what result; what was not verified and why; anything still failing, suspected, or blocked; each finding you dismissed, with its reason; each principle that shaped a decision and the choice it changed; what the **Reply** line of each playbook the run followed asks for; and the final pass's Needs manual check list, as steps the user can follow on localhost. Call the task done only when the final pass's last run has no Failed items, no Suspected item or unproven test is still waiting on a hunter or tester, and nothing changed after it.
