@@ -1,6 +1,6 @@
 # Brief templates
 
-Copy the template for the agent you are briefing and fill every field that applies; a field you cannot fill means the piece is not scoped yet. Drop the bracketed lines that do not apply, and the brackets from those that do. Copy acceptance criteria and standing orders from the plan file word for word into piece briefs. Design, combined-check, and review briefs point to the plan file by its full path instead, so copy no request, standing orders, or acceptance criteria into them. Never pass on an agent's claim that its work is correct.
+Copy the template for the agent you are briefing and fill every field that applies; a field you cannot fill means the piece is not scoped yet. Drop the bracketed lines that do not apply, and the brackets from those that do. Copy acceptance criteria and standing orders from the plan file word for word into piece briefs. Combined-check and review briefs point to the plan file by its full path instead, so copy no request, standing orders, or acceptance criteria into them. Never pass on an agent's claim that its work is correct.
 
 ## Piece
 
@@ -25,25 +25,8 @@ Standing orders:
 [Tester] You own <test paths>. <For a bug fix, the bug report.>
 [Bug hunt] Hunt <the concern>. <You have the running app. | <the agent named> has the running app: do not start a server or drive the browser.>
 [Designer] Save exported screenshots to <a scratchpad directory>.
-[Building a chosen design] Design: <path to the chosen sketch>, taking <what to take from the other, or "nothing"> from <path to the other sketch>. Build it as sketched. If the code fights it (casts, `any`, the same workaround in several places, a caller it cannot serve), stop and report why instead of patching around it.
 [Continuing an earlier agent's piece] Continue from the changes already on disk: review them, keep what holds up, and fix or revert the rest. The earlier agent's brief was this one except for <its Goal, and any other field that differed>. Its report: <...>. New work: <...>. <Worktree path and branch, if it ran in one.>
 Report: the shape your agent definition gives.
-```
-
-## Design
-
-For the two `specialist`s that sketch the shared state before it is built, one brief starting from the callers and one from the data.
-
-```text
-Goal: sketch <the shape to settle> for <the pieces that build on it, by their numbers in the plan>; do not implement it.
-Plan: <full path to orchestrate-plan.md>. Its request and standing orders bind you, and those pieces' acceptance criteria say how they will use the shape. If you cannot read it, stop and report that.
-Base commit: <the session's base SHA>
-Start from: <the callers: write how each of those pieces will use the shape, then the smallest interface that serves them | the data: what it stores, who owns each part, its invariants, and how it grows, then the interface over it>
-Ground: before you sketch, read the code the shape touches (the models, types, and callers it joins or replaces), and cite it as `path:line`.
-Sketch: the callers' usage first, then the types, signatures, and module map, with every body left unimplemented, and what each choice trades off. Write it to <a scratchpad file>, and change no file in the repository.
-[Reads or writes stored data, or runs on every request] Scale: <row counts, request rate, payload size, as the user or the repository states them, or "unknown, assume production size">
-Time limit: <minutes>
-Report: the shape your agent definition gives, with the sketch's path under Changed and its trade-offs under Decisions.
 ```
 
 ## Combined check

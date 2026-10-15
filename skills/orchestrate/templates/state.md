@@ -2,7 +2,7 @@
 
 Keep the run in two files in your scratchpad directory, in these layouts. Write "none" rather than leaving a field out, and update a field in the same message as the launch, report, or commit that changes it.
 
-`orchestrate-plan.md` holds what design, review, and combined-check briefs point their agents to, so it never holds an agent's claim, a status, or a dismissal.
+`orchestrate-plan.md` holds what review and combined-check briefs point their agents to, so it never holds an agent's claim, a status, or a dismissal.
 
 ```text
 Request: <the user's request, word for word>
@@ -15,7 +15,6 @@ P1 <title, also its Agent description>
   Owns: <paths>
   Adds to: <files, or "none">
   Verify: <the exact commands, or the flows to walk>
-  Design: <path to the chosen sketch, and what to take from the other, or "none">
   Acceptance criteria:
   - <word for word; every brief for this piece copies them from here>
 ```
@@ -31,8 +30,7 @@ Dev server and database: <the agent that may start the dev server or change the 
 Pieces:
 P1 <title>
   Agent: <type>, <agent ID>, launched <time from `date`>, time limit <minutes>
-  Status: <planned | designing | running | ready | done | partial | blocked | replaced by P1b>
-  Design round: <each sketching specialist's agent ID and sketch path, and why the pick, or "none">
+  Status: <planned | running | ready | done | partial | blocked | replaced by P1b>
   Worktree: <path, branch, and final commit, or "none">
   Tester: <agent ID, worktree, branch, test paths, and whether each test is proven, unproven, or unprovable, or "none">
   Claimed checks: <each command the report says passed, with its result>

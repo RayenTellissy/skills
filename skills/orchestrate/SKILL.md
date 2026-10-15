@@ -15,7 +15,7 @@ Whichever path you take, the final review in [Verify](#verify) still runs before
 
 ## You do
 
-Understand the request, build the plan (pieces, dependencies, order, the files each piece owns, and the review groups in [Verify](#verify)), pick the design of the shared state, write briefs, judge reports, resolve conflicts between pieces, keep the run's [State](#state), report to the user.
+Understand the request, build the plan (pieces, dependencies, order, the files each piece owns, and the review groups in [Verify](#verify)), write briefs, judge reports, resolve conflicts between pieces, keep the run's [State](#state), report to the user.
 
 Git and GitHub glue is yours, so no agent has to touch branches in the shared checkout. Before the first agent edits anything, create the work branch if the user's rules call for one, record `git rev-parse HEAD` as the session's base, and note any files already dirty: they are the user's and stay out of scope unless the task names them. You also make the checkpoint commits [Worktrees](#worktrees) and [Verify](#verify) need, bring worktree work back, and commit, push, and open or merge the pull requests the user asks for. Stage by path; `git add -A` would also stage agent worktrees.
 
@@ -29,7 +29,7 @@ One exception: a change under about five lines whose location and content you al
 
 ## State
 
-Keep the run in two files in your scratchpad directory, laid out as [templates/state.md](templates/state.md). `orchestrate-plan.md` holds the request, the standing orders, and each piece's paths, checks, and acceptance criteria, and never an agent's claim, so design, review, and combined-check briefs point their agents to it instead of copying its request, standing orders, and criteria. `orchestrate-state.md` holds the rest of the run and is yours alone. Read that template and [templates/briefs.md](templates/briefs.md) once, before your first brief. Update a file in the same message as the launch, report, or commit it records, never in a turn of its own, and build every brief from them, copying acceptance criteria and standing orders word for word into each brief that does not point to the plan. After a compaction, read both before anything else.
+Keep the run in two files in your scratchpad directory, laid out as [templates/state.md](templates/state.md). `orchestrate-plan.md` holds the request, the standing orders, and each piece's paths, checks, and acceptance criteria, and never an agent's claim, so review and combined-check briefs point their agents to it instead of copying its request, standing orders, and criteria. `orchestrate-state.md` holds the rest of the run and is yours alone. Read that template and [templates/briefs.md](templates/briefs.md) once, before your first brief. Update a file in the same message as the launch, report, or commit it records, never in a turn of its own, and build every brief from them, copying acceptance criteria and standing orders word for word into each brief that does not point to the plan. After a compaction, read both before anything else.
 
 The plan's standing orders are numbered lines, one rule each, for what every agent must follow that CLAUDE.md does not already say. Before your next launch, add a line whenever the user gives an instruction mid-session or a report turns up something every later agent needs, such as an environment variable the tests require or a command that hangs. Every brief carries them, copied or through the plan.
 
@@ -38,7 +38,7 @@ The plan's standing orders are numbered lines, one rule each, for what every age
 Seven agents, all pinned to Opus 5.5 with a fixed effort each. Pick the agent by task type, and leave the Agent tool's `model` and `effort` unset so each keeps its own:
 
 - `subagent_type: "worker"` (medium effort): the default for implementation, fixes, writing, and anything else that changes files, plus the combined checks in [Verify](#verify).
-- `subagent_type: "specialist"` (high effort): pieces that need a design decision the brief cannot settle, tricky logic, unmapped cross-module work, conflict resolution between pieces, the sketches of a [shared-state design](#shared-state-design), and escalations from `worker`.
+- `subagent_type: "specialist"` (high effort): pieces that need a design decision the brief cannot settle, tricky logic, unmapped cross-module work, conflict resolution between pieces, and escalations from `worker`.
 - `subagent_type: "explorer"` (low effort, read-only): locating code, research, "does X exist" checks.
 - `subagent_type: "reviewer"` (extra-high effort, never edits): a review of each group of pieces as it finishes, and the final verification pass.
 - `subagent_type: "bug-hunter"` (extra-high effort, no source edits): hunting for bugs and diagnosing unexpected behavior.
@@ -77,19 +77,11 @@ Bring worktree work back without `git merge`, so no foreign commits or merge com
 
 ### Parallel pieces
 
-Launch independent pieces in one message. Give each piece an explicit list of the files or directories it owns, and launch pieces together only when their lists do not overlap. Shared state goes first and alone: the schema and migrations, shared types and API contracts, and dependency installs are one piece, designed first as [Shared-state design](#shared-state-design) says, and the pieces that need them fan out after it reports. One atomic change, such as a rename, a signature change, or a dependency upgrade, goes to one agent end to end. Pieces that must change the same files at the same time, beyond adding lines as below, each get a worktree, and you bring the branches back one at a time; otherwise run them in sequence.
+Launch independent pieces in one message. Give each piece an explicit list of the files or directories it owns, and launch pieces together only when their lists do not overlap. Shared state goes first and alone: the schema and migrations, shared types and API contracts, and dependency installs are one piece, and the pieces that need them fan out after it reports. One atomic change, such as a rename, a signature change, or a dependency upgrade, goes to one agent end to end. Pieces that must change the same files at the same time, beyond adding lines as below, each get a worktree, and you bring the branches back one at a time; otherwise run them in sequence.
 
 A piece may still add a line it needs to a file it does not own, such as an import, an export, or a route or registry entry, under the rules in its agent definition, and its report lists each one. A file several pieces will add to (a route table, an index file, a registry) gets at most one owner, the piece that changes its existing lines, and the other briefs name it under Adds to.
 
 Every agent that shares the checkout gets the template's shared-checkout line. The formatter, dependency install, code generation, and migration it rules out run once, after the parallel pieces land. Name the one agent that may start the dev server or change the database, or none: give them only to an agent whose own checks need the running app or a migration, so group app passes seldom wait for them.
-
-### Shared-state design
-
-When the shared-state piece settles a shape other pieces build on, such as a data model, a schema, or an API contract, and neither the request nor the repository fixes that shape already, design it before anyone builds it: a wrong shape found in review means rework in every piece built on it. Skip this for installs, renames, and shapes that copy an existing pattern.
-
-Launch two `specialist`s in one message with the template's design brief, one starting from the callers and one from the data, so the sketches differ in shape and not only in detail; pieces that do not need the shape launch with them. Each grounds itself in the code the shape touches and writes a sketch without implementing it. Read both sketches. When they agree, take that shape; otherwise pick the one that serves every piece built on it with the smaller public surface, no casts or special cases at the callers, and one owner for each piece of state, and note what to take from the other. Where they disagree about the code, check the `path:line` they cite. Record the choice in the plan, and update the acceptance criteria of the piece and of those built on it to the chosen names and signatures.
-
-Then brief the piece's agent, picked as [Worker or specialist](#worker-or-specialist) says now that the design is settled, to build the chosen sketch. If it reports that the code fights the design, pick again with its report in hand instead of letting it patch around the design.
 
 ### Briefs
 
