@@ -70,16 +70,15 @@ The plan's standing orders are numbered lines, one rule each, for what every age
 
 ## Delegate
 
-Eight agents, all pinned to Opus 5.5 with a fixed effort each. Pick the agent by task type, and leave the Agent tool's `model` and `effort` unset so each keeps its own:
+Seven agents, all pinned to Opus 5.5 with a fixed effort each. Pick the agent by task type, and leave the Agent tool's `model` and `effort` unset so each keeps its own:
 
 - `subagent_type: "worker"` (medium effort): the default for implementation, fixes, writing, and anything else that changes files, plus the combined checks in [Verify](#verify).
-- `subagent_type: "specialist"` (high effort): pieces that need a design decision the brief cannot settle, tricky logic, unmapped cross-module work, conflict resolution between pieces, and escalations from `worker`.
+- `subagent_type: "specialist"` (high effort): tricky logic, unmapped cross-module work, conflict resolution between pieces, and escalations from `worker`.
 - `subagent_type: "explorer"` (low effort, read-only): locating code, research, "does X exist" checks.
 - `subagent_type: "explainer"` (extra-high effort, read-only): the explanation a `how` or `why` step ends in, from pstack's explainer or synthesizer prompt (see [Playbooks](#playbooks)).
 - `subagent_type: "reviewer"` (extra-high effort, never edits): a review of each group of pieces as it finishes, and the final verification pass.
 - `subagent_type: "bug-hunter"` (extra-high effort, no source edits): hunting for bugs and diagnosing unexpected behavior.
 - `subagent_type: "tester"` (high effort, edits only tests): writing tests from a piece's contract, independently of the worker that implements it.
-- `subagent_type: "designer"` (max effort, no source edits): UI design pieces in Paper or another design tool the brief names. The brief must give a scratchpad directory for exported screenshots.
 
 Explore only what the plan itself depends on: how to split the work, which files each piece owns, whether something already exists, or a `how` or `why` step its playbook calls for. Workers map the code they change as part of their run, so do not send an explorer just to enrich a brief. Launch explorers in the same message as the pieces you can already brief.
 
@@ -87,9 +86,9 @@ Explore only what the plan itself depends on: how to split the work, which files
 
 Pick the agent per piece when you write the brief. `worker` is the default: Opus 5.5 at medium effort handles any piece with a clear goal, a known area, and a check that would catch a wrong result. That covers a feature or fix inside one module or a few named files, a new endpoint, component, or function that follows an existing pattern, call-site updates the brief lists, config, docs, and copy. It decides how within the brief.
 
-Use `specialist` when the piece needs a design decision the brief cannot settle (an architecture, a data model, a public API shape), touches tricky logic (concurrency, caching, auth and security, data migrations, state shared across modules), spans modules nobody has mapped yet, or has no test or check that would catch a wrong result. When unsure, ask whether a check in the brief would catch a wrong result: if yes, `worker`; if no, `specialist`.
+Use `specialist` when the piece touches tricky logic (concurrency, caching, auth and security, data migrations, state shared across modules), spans modules nobody has mapped yet, or has no test or check that would catch a wrong result. A design decision the brief cannot settle (an architecture, a data model, a public API shape) is not a reason to pick it: settle the decision first with the `architect` step in [Playbooks](#playbooks), then brief the piece against your sketch. When unsure, ask whether a check in the brief would catch a wrong result: if yes, `worker`; if no, `specialist`.
 
-If a `worker` reports the piece was harder than briefed, do not discard its work. Launch `specialist` with the original brief, the `worker` report, and an instruction to continue from the partial changes already on disk (review them, keep what holds up, fix or revert the rest) rather than starting over. If the `worker` ran in a worktree, give `specialist` that worktree's path and branch.
+If a `worker` reports the piece was harder than briefed, do not discard its work. Launch `specialist` with the original brief, the `worker` report, and an instruction to continue from the partial changes already on disk (review them, keep what holds up, fix or revert the rest) rather than starting over. If the `worker` ran in a worktree, give `specialist` that worktree's path and branch. When what made it harder is a design decision the brief left open, run the `architect` step first and give the continuing agent your sketch; if the sketch settles all that was hard, a new `worker` continues instead.
 
 ### Bug hunts
 

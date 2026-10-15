@@ -39,7 +39,7 @@ export const S = {
 // (all pinned to Opus 5.5), shown for planned tasks and for runs whose effort
 // the engine has not reported yet.
 
-export const ROLES = ['worker', 'specialist', 'explorer', 'explainer', 'tester', 'bug-hunter', 'designer', 'reviewer'] as const
+export const ROLES = ['worker', 'specialist', 'explorer', 'explainer', 'tester', 'bug-hunter', 'reviewer'] as const
 export type Role = (typeof ROLES)[number]
 
 const ROLE_COLOR: Record<Role | 'other', string> = {
@@ -49,7 +49,6 @@ const ROLE_COLOR: Record<Role | 'other', string> = {
   explainer: '#639922',
   tester: '#C9487F',
   'bug-hunter': '#D85A30',
-  designer: '#2AA5B8',
   reviewer: '#BA7517',
   other: '#888780',
 }
@@ -61,7 +60,6 @@ const ROLE_EFFORT: Record<Role, string> = {
   explainer: 'xhigh',
   tester: 'high',
   'bug-hunter': 'xhigh',
-  designer: 'max',
   reviewer: 'xhigh',
 }
 
@@ -299,8 +297,6 @@ export const CRAB_CSS = `<style>
 @keyframes wave{50%{transform:skewY(-12deg) scaleX(.85)}}
 .c-explorer.run .it{transform-origin:50% 100%;animation:fence .5s ease-in-out infinite}
 @keyframes fence{50%{transform:rotate(25deg)}}
-.c-designer.run .it{transform-origin:50% 100%;animation:paint .5s ease-in-out infinite}
-@keyframes paint{50%{transform:rotate(-22deg)}}
 @media (prefers-reduced-motion: reduce){.run,.run g{animation:none!important}}
 </style>`
 
@@ -347,13 +343,6 @@ const COSTUMES: Record<string, (f: Fill, t: string) => void> = {
     stamp(f, 5, 3, ['.kk..............kk.', '.kkk....kkkk....kkk.', '..kkkkkkkwwkkkkkkk..', '..kkkkkkkkkkkkkkkk..', '.gggggggggggggggggg.'], { k: '#55514C', w: '#F8F6F1', g: '#F5C542' })
     f(7, 11, 11, 1, INK); f(18, 11, 4, 3, INK)
     f(27, 6, 1, 9, '#C9CCD2', 'it'); f(26, 15, 3, 1, '#7A4A26', 'it')
-  },
-  // Designer: artist in a beret with a palette; the brush sweeps strokes.
-  designer: (f, t) => {
-    crabBody(f, -4, 'it')
-    stamp(f, 5, 5, ['..........k.......', '.....bbbbbbbbb....', '..bbbbbbbbbbbbbbb.', 'bbbbbbbbbbbbbbbbbb', '.ddddddddddddddd..'], { b: t, d: '#1B6F7C', k: INK })
-    stamp(f, 24, 0, ['.p.', 'ppp', 'sss', '.h.', '.h.', '.h.', '.h.', '.h.', '.h.', '.h.'], { p: '#E2504C', s: '#C9CCD2', h: '#7A4A26' }, 'it')
-    stamp(f, 0, 17, ['.wwww.', 'wrwgww', 'wwbwyw', '.wwww.'], { w: '#E8D3A8', r: '#E2504C', g: '#3BAA5C', b: '#3B7DDD', y: '#F5C542' })
   },
   other: f => crabBody(f),
 }

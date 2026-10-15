@@ -4,7 +4,7 @@ Copy the template for the agent you are briefing and fill every field that appli
 
 ## Piece
 
-For `worker`, `specialist`, `tester`, `bug-hunter`, `explorer`, `explainer`, and `designer`.
+For `worker`, `specialist`, `tester`, `bug-hunter`, `explorer`, and `explainer`.
 
 ```text
 [Worktree agent, first line] First run `git reset --hard <SHA>` in your worktree and confirm `git log -1 --format=%H` prints `<SHA>`. Commit your work there before reporting, and report your worktree path, branch, and final commit.
@@ -27,7 +27,6 @@ Standing orders:
 [Beside a tester] A tester owns <test paths>: do not write or edit tests there. <If its tests are already in: Run them before you report, and fix the code until they pass.>
 [Tester] You own <test paths>. <For a bug fix, the bug report.>
 [Bug hunt] Hunt <the concern>. <You have the running app. | <the agent named> has the running app: do not start a server or drive the browser.>
-[Designer] Save exported screenshots to <a scratchpad directory>.
 [Runs a how or why template] Template: <its full path under how/ or why/>, with its placeholders filled in: <each placeholder and its value, word for word>
 [Explainer] Output: <the scratchpad file to write the explanation to>
 [Builds against a sketch] Sketch: <your sketch and rationale paths>. The synthesized sketch is the contract. Deviations from it are signal to surface under Decisions, not friction to absorb silently.
